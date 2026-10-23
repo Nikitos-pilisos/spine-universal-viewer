@@ -57,6 +57,16 @@
   canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   #glCanvas { cursor: grab; } #glCanvas.panning { cursor: grabbing; }
   #gridCanvas { pointer-events: none; }
+  .lang { display: inline-flex; gap: 4px; }
+  .lang button { padding: 2px 3px; line-height: 0; opacity: .45; border-radius: 4px; }
+  .lang button:hover { opacity: .85; }
+  .lang button.on { opacity: 1; border-color: var(--accent2); box-shadow: 0 0 0 1px var(--accent2); }
+  .lang svg { display: block; border-radius: 2px; }
+  input[type=text] { width: 100%; background: #2a2a34; border: 1px solid var(--line); color: var(--text); border-radius: 5px; padding: 6px 8px; font: inherit; outline: none; }
+  input[type=text]:focus { border-color: var(--accent2); }
+  #wmCanvas { pointer-events: none; }
+  #viewport.bgedit #glCanvas { cursor: move; }
+
 
   #stats { position: absolute; top: 12px; right: 12px; background: rgba(16,16,20,.88); border: 1px solid #4f4f61; border-radius: 8px;
            padding: 10px 12px; font: 12px/1.5 Consolas,'Courier New',monospace; color: #cfe; pointer-events: none; z-index: 20;
@@ -123,7 +133,7 @@
 <body>
 
 <aside id="sidebar">
-  <h2>Spine Universal Viewer <span class="badge" id="verBadge">—</span></h2>
+  <h2>Spine Universal Viewer <span style="display:flex;align-items:center;gap:6px"><span class="lang" id="langBtns"><button data-lang="en" title="English"><svg viewBox="0 0 22 15" width="22" height="15" aria-hidden="true"><rect width="22" height="15" fill="#fff"/><rect y="0.00" width="22" height="1.15" fill="#b22234"/><rect y="2.31" width="22" height="1.15" fill="#b22234"/><rect y="4.62" width="22" height="1.15" fill="#b22234"/><rect y="6.92" width="22" height="1.15" fill="#b22234"/><rect y="9.23" width="22" height="1.15" fill="#b22234"/><rect y="11.54" width="22" height="1.15" fill="#b22234"/><rect y="13.85" width="22" height="1.15" fill="#b22234"/><rect width="9.4" height="8.1" fill="#3c3b6e"/><circle cx="1.4" cy="1.3" r=".45" fill="#fff"/><circle cx="3.3" cy="1.3" r=".45" fill="#fff"/><circle cx="5.2" cy="1.3" r=".45" fill="#fff"/><circle cx="7.1" cy="1.3" r=".45" fill="#fff"/><circle cx="1.4" cy="2.8" r=".45" fill="#fff"/><circle cx="3.3" cy="2.8" r=".45" fill="#fff"/><circle cx="5.2" cy="2.8" r=".45" fill="#fff"/><circle cx="7.1" cy="2.8" r=".45" fill="#fff"/><circle cx="1.4" cy="4.3" r=".45" fill="#fff"/><circle cx="3.3" cy="4.3" r=".45" fill="#fff"/><circle cx="5.2" cy="4.3" r=".45" fill="#fff"/><circle cx="7.1" cy="4.3" r=".45" fill="#fff"/><circle cx="1.4" cy="5.8" r=".45" fill="#fff"/><circle cx="3.3" cy="5.8" r=".45" fill="#fff"/><circle cx="5.2" cy="5.8" r=".45" fill="#fff"/><circle cx="7.1" cy="5.8" r=".45" fill="#fff"/><circle cx="1.4" cy="7.3" r=".45" fill="#fff"/><circle cx="3.3" cy="7.3" r=".45" fill="#fff"/><circle cx="5.2" cy="7.3" r=".45" fill="#fff"/><circle cx="7.1" cy="7.3" r=".45" fill="#fff"/></svg></button><button data-lang="ru" title="Русский"><svg viewBox="0 0 22 15" width="22" height="15" aria-hidden="true"><rect width="22" height="5" fill="#fff"/><rect y="5" width="22" height="5" fill="#0039a6"/><rect y="10" width="22" height="5" fill="#d52b1e"/></svg></button></span><span class="badge" id="verBadge">—</span></span></h2>
 
   <div class="card">
     <div class="title">Версия плеера (runtime)</div>
@@ -191,6 +201,36 @@
   </div>
 
   <div class="card">
+    <div class="title">Свой фон (сцена)</div>
+    <div class="row"><button id="bgLoad" class="grow">Загрузить изображение…</button><button id="bgClear" disabled title="Убрать фон">✕</button></div>
+    <input type="file" id="bgFile" accept="image/*" style="display:none">
+    <label class="chk"><input type="checkbox" id="bgEdit" disabled> Двигать/масштабировать фон мышью <kbd>E</kbd></label>
+    <div style="color:var(--dim);font-size:11.5px;line-height:1.5">В этом режиме: ЛКМ — двигать фон, колесо — размер фона, ПКМ/СКМ — камера, Ctrl+колесо — зум камеры.</div>
+    <label class="lbl"><span>Размер фона</span><span id="bgScaleVal">100%</span></label>
+    <input type="range" id="bgScale" min="-1.5" max="1.2" step="0.005" value="0" disabled>
+    <label class="lbl"><span>Прозрачность фона</span><span id="bgAlphaVal">100%</span></label>
+    <input type="range" id="bgAlpha" min="0" max="1" step="0.01" value="1" disabled>
+    <div class="row"><button id="bgFit" class="grow" disabled>Вписать в вид</button><button id="bgReset" class="grow" disabled>Сброс</button></div>
+  </div>
+
+  <div class="card">
+    <div class="title">Ватермарка</div>
+    <label class="chk"><input type="checkbox" id="wmOn"> Показывать поверх превью</label>
+    <input type="text" id="wmText" value="CONFIDENTIAL" placeholder="Текст ватермарки" maxlength="80">
+    <div class="grid2">
+      <div><label class="lbl"><span>Расположение</span></label>
+        <select id="wmLayout"><option value="tile">Мозаика</option><option value="center">По центру</option><option value="tl">Слева сверху</option><option value="tr">Справа сверху</option><option value="bl">Слева снизу</option><option value="br">Справа снизу</option></select></div>
+      <div><label class="lbl"><span>Цвет</span></label><input type="color" id="wmColor" value="#ffffff" style="width:100%;height:30px"></div>
+    </div>
+    <label class="lbl"><span>Размер</span><span id="wmSizeVal">32</span></label>
+    <input type="range" id="wmSize" min="10" max="200" step="1" value="32">
+    <label class="lbl"><span>Прозрачность</span><span id="wmAlphaVal">25%</span></label>
+    <input type="range" id="wmAlpha" min="0.03" max="1" step="0.01" value="0.25">
+    <label class="lbl"><span>Угол</span><span id="wmAngleVal">-30°</span></label>
+    <input type="range" id="wmAngle" min="-90" max="90" step="1" value="-30">
+  </div>
+
+  <div class="card">
     <div class="title">Показать (debug)</div>
     <div class="grid2">
       <label class="chk"><input type="checkbox" data-dbg="drawBones"> Кости <kbd>B</kbd></label>
@@ -208,6 +248,7 @@
   <div class="card">
     <div class="title">Рендер</div>
     <label class="chk"><input type="checkbox" id="clipChk" checked> Clipping-маски (clipping attachments) <kbd>C</kbd></label>
+    <label class="chk" title="В превью вся графика заменяется плейсхолдером «NDA Placeholder» (силуэт и UV сохраняются)"><input type="checkbox" id="ndaChk"> NDA режим — графика → плейсхолдер <kbd>N</kbd></label>
     <div>
       <label class="lbl"><span>Клиппинг граней меша (backface)</span></label>
       <select id="cullSel">
@@ -233,6 +274,7 @@
 <main id="viewport" class="checker">
   <canvas id="gridCanvas"></canvas>
   <canvas id="glCanvas"></canvas>
+  <canvas id="wmCanvas"></canvas>
   <div id="empty">Перетащите .json/.skel + .atlas + .png<br>на окно просмотрщика</div>
   <div id="stats"></div>
   <div id="hud"></div>
@@ -294,7 +336,7 @@ const el = {
   alphaRange: $('alphaRange'), alphaVal: $('alphaVal'),
   zoomRange: $('zoomRange'), zoomVal: $('zoomVal'), fitBtn: $('fitBtn'), oneBtn: $('oneBtn'), homeBtn: $('homeBtn'),
   bgSelect: $('bgSelect'), bgColor: $('bgColor'), gridChk: $('gridChk'), statsChk: $('statsChk'),
-  hideSkin: $('hideSkin'), clipChk: $('clipChk'), cullSel: $('cullSel'), pmaSel: $('pmaSel'), filterSel: $('filterSel'),
+  hideSkin: $('hideSkin'), wm: $('wmCanvas'), ndaChk: $('ndaChk'), langBtns: $('langBtns'), clipChk: $('clipChk'), cullSel: $('cullSel'), pmaSel: $('pmaSel'), filterSel: $('filterSel'),
   viewport: $('viewport'), gl: $('glCanvas'), grid: $('gridCanvas'), stats: $('stats'), hud: $('hud'), toast: $('toast'), empty: $('empty'),
 };
 
@@ -304,6 +346,42 @@ const baseName = p => String(p).split(/[\\/]/).pop();
 const stem = p => baseName(p).replace(/\.[^.]+$/, '');
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+/* ---------------- i18n (RU / EN) ---------------- */
+const EN = {"Версия плеера (runtime)": "Player version (runtime)", "Автоопределение версии по файлу": "Auto-detect version from file", "Файлы": "Files", "Перетащите сюда (или клик):": "Drop here (or click):", "Анимация": "Animation", "Загрузите модель…": "Load a model…", "Скорость": "Speed", "Вес анимации (Blend Alpha)": "Animation weight (Blend Alpha)", "Скин": "Skin", "Вид / навигация": "View / navigation", "Масштаб": "Zoom", "Сброс": "Reset", "Фон": "Background", "Шахматка": "Checkerboard", "Тёмный": "Dark", "Серый": "Gray", "Светлый": "Light", "Зелёный (chroma)": "Green (chroma)", "Свой цвет…": "Custom color…", "Сетка / оси": "Grid / axes", "Статистика": "Stats", "ЛКМ/ПКМ/СКМ — перемещение · колесо — зум к курсору · двойной клик — Fit": "LMB/RMB/MMB — pan · wheel — zoom to cursor · double click — Fit", "Показать (debug)": "Show (debug)", "Кости": "Bones", "Меш (сетка)": "Mesh (wireframe)", "Меш hull": "Mesh hull", "Region-рамки": "Region outlines", "Clip-полигоны": "Clip polygons", "Скрыть картинку (только debug)": "Hide image (debug only)", "Рендер": "Render", "Clipping-маски (clipping attachments)": "Clipping masks (clipping attachments)", "NDA режим — графика → плейсхолдер": "NDA mode — artwork → placeholder", "В превью вся графика заменяется плейсхолдером «NDA Placeholder» (силуэт и UV сохраняются)": "All artwork in the preview is replaced with an \"NDA Placeholder\" (silhouette and UVs are kept)", "Клиппинг граней меша (backface)": "Mesh face culling (backface)", "Выкл — обе стороны (как в Spine)": "Off — both sides (as in Spine)", "Culling: скрыть обратные грани": "Culling: hide back faces", "Culling: только обратные грани": "Culling: back faces only", "Альфа текстур": "Texture alpha", "Авто": "Auto", "Фильтр": "Filter", "Перетащите .json/.skel + .atlas + .png": "Drop .json/.skel + .atlas + .png", "на окно просмотрщика": "onto the viewer window", "Потяните, чтобы изменить высоту NLA": "Drag to resize the NLA panel", "Свернуть/развернуть": "Collapse/expand", "Включить": "Enable", "В начало (Home)": "To start (Home)", "Показать весь таймлайн": "Fit whole timeline", "Отдалить": "Zoom out", "Приблизить": "Zoom in", "Прилипание к краям клипов и плейхеду (Alt — временно выкл.)": "Snap to clip edges and playhead (hold Alt to disable)", "Выложить все анимации подряд на выбранную дорожку": "Lay out all animations in a row on the selected track", "Все анимации подряд": "All animations in a row", "Очистить": "Clear", "Экспорт": "Export", "Импорт": "Import", "Сохранить раскладку в .json": "Save layout to .json", "Загрузить раскладку из .json": "Load layout from .json", "Анимации — тащите на дорожку": "Animations — drag onto a track", "Фильтр…": "Filter…", "Версия данных: —": "Data version: —", "Версия данных не определена. Runtime: {0}": "Data version not detected. Runtime: {0}", "Версия данных: {0}": "Data version: {0}", " → совпадает с runtime {0}": " → matches runtime {0}", " → НЕ совпадает с runtime {0} (возможны ошибки)": " → does NOT match runtime {0} (errors possible)", "Runtime {0} не создал namespace spine": "Runtime {0} did not create the spine namespace", "Не удалось загрузить {0}": "Failed to load {0}", "WebGL недоступен": "WebGL is not available", "Не удалось декодировать {0}": "Failed to decode {0}", "Нужен файл скелета (.json или .skel)": "A skeleton file is required (.json or .skel)", "Скелет: {0}": "Skeleton: {0}", "📁 Проекты в папке плеера…": "📁 Projects in the player folder…", "Версии {0} нет — использую ближайший runtime {1}": "No runtime for {0} — using the closest one: {1}", "Runtime {0} не умеет читать бинарный .skel — экспортируйте JSON": "Runtime {0} cannot read binary .skel — export JSON instead", "Не найден .atlas — перетащите .json/.skel вместе с .atlas и .png (или положите их в папку плеера)": "No .atlas found — drop .json/.skel together with .atlas and .png (or put them in the player folder)", "В файлах нет текстуры: {0}": "Texture not found in files: {0}", "В атласе нет регионов (пропущены): {0}": "Regions missing in atlas (skipped): {0}", "Ошибка (runtime {0}): {1}": "Error (runtime {0}): {1}", " — данные версии {0} не совместимы с runtime {1}, выберите {2} версию": " — data version {0} is not compatible with runtime {1}, choose version {2}", "другую": "another", "Геометрия": "Geometry", "{0} всего": "{0} total", "(выкл)": "(off)", "Вес файлов": "File size", "Графика": "Artwork", "{0} шт.": "{0} pcs", "Итого": "Total", "Модель не загружена": "No model loaded", "NDA режим": "NDA mode", "Перетащите на дорожку · двойной клик — в конец выбранной дорожки": "Drag onto a track · double click — append to the selected track", "Добавить дорожку": "Add track", "+ Дорожка": "+ Track", "Additive (прибавлять к нижним дорожкам)": "Additive (add on top of lower tracks)", "Удалить дорожку": "Delete track", "Вес дорожки": "Track weight", "Загрузите модель.": "Load a model.", "Клип · {0}": "Clip · {0}", "Начало, s": "Start, s", "Повторы": "Repeats", "Длина, s": "Length, s", "Дублировать": "Duplicate", "← к плейхеду": "← to playhead", "Плейхед →": "Playhead →", "Удалить": "Delete", "<b>Перетаскивание</b> анимации из списка на дорожку — добавить клип.<br>": "<b>Drag</b> an animation from the list onto a track to add a clip.<br>", "Клип тащится мышью по времени и между дорожками, правый край — длина (повторы).<br>": "Drag a clip in time and between tracks; the right edge sets its length (repeats).<br>", "<b>Наложение</b> клипов на одной дорожке = плавное смешивание (кроссфейд по длине перекрытия).<br>": "<b>Overlapping</b> clips on one track = smooth blend (crossfade over the overlap).<br>", "Дорожки выше ◆ Base накладываются с весом, <b>A</b> — additive.<br>": "Tracks above ◆ Base are layered with a weight; <b>A</b> = additive.<br>", "Колесо — зум, Shift+колесо / ПКМ / СКМ — прокрутка, клик по линейке — перемотка, Del — удалить клип.": "Wheel — zoom, Shift+wheel / RMB / MMB — scroll, click the ruler — seek, Del — delete clip.", "NLA загружен: {0}": "NLA loaded: {0}", "Не удалось прочитать NLA: {0}": "Failed to read NLA: {0}", "Свой фон (сцена)": "Custom background (scene)", "Загрузить изображение…": "Load image…", "Убрать фон": "Remove background", "Двигать/масштабировать фон мышью": "Move/scale background with mouse", "В этом режиме: ЛКМ — двигать фон, колесо — размер фона, ПКМ/СКМ — камера, Ctrl+колесо — зум камеры.": "In this mode: LMB — move the background, wheel — scale it, RMB/MMB — camera, Ctrl+wheel — camera zoom.", "Размер фона": "Background size", "Прозрачность фона": "Background opacity", "Вписать в вид": "Fit to view", "Ватермарка": "Watermark", "Показывать поверх превью": "Show over the preview", "Текст ватермарки": "Watermark text", "Расположение": "Layout", "Мозаика": "Tiled", "По центру": "Center", "Слева сверху": "Top left", "Справа сверху": "Top right", "Слева снизу": "Bottom left", "Справа снизу": "Bottom right", "Цвет": "Color", "Размер": "Size", "Прозрачность": "Opacity", "Угол": "Angle", "Фон: редактирование": "Background: edit mode", "Не удалось загрузить изображение: {0}": "Failed to load image: {0}"};
+const sysLang = () => /^ru/i.test(navigator.language || (navigator.languages || [])[0] || '') ? 'ru' : 'en';
+let LANG = 'ru';
+const tt = (ru, ...a) => { const s0 = LANG === 'en' && EN[ru] !== undefined ? EN[ru] : ru; return a.length ? s0.replace(/\{(\d+)\}/g, (m, i) => a[i]) : s0; };
+function trStatic() {
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let n;
+  while ((n = w.nextNode())) {
+    if (/^(SCRIPT|STYLE)$/.test(n.parentNode.tagName)) continue;
+    if (n.__ru === undefined) { n.__ru = /[А-Яа-яЁё]/.test(n.nodeValue) ? n.nodeValue : null; }
+    if (n.__ru === null) continue;
+    const key = n.__ru.trim(), out = LANG === 'en' && EN[key] !== undefined ? n.__ru.replace(key, EN[key]) : n.__ru;
+    if (n.nodeValue !== out) n.nodeValue = out;
+  }
+  document.querySelectorAll('[title],[placeholder]').forEach(e => {
+    for (const a of ['title', 'placeholder']) {
+      if (!e.hasAttribute(a) && e.__ruattr === undefined) continue;
+      e.__ruattr = e.__ruattr || {};
+      if (e.__ruattr[a] === undefined) e.__ruattr[a] = e.getAttribute(a);
+      const v = e.__ruattr[a];
+      if (v === null || !/[А-Яа-яЁё]/.test(v)) continue;
+      e.setAttribute(a, LANG === 'en' && EN[v] !== undefined ? EN[v] : v);
+    }
+  });
+}
+function setLang(pref, save) {
+  if (save) lsSet('suv.lang', pref);
+  LANG = pref === 'en' || pref === 'ru' ? pref : sysLang();       // нет сохранённого выбора — по языку системы
+  document.documentElement.lang = LANG;
+  el.langBtns.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+  trStatic();
+  for (const f of [() => updateVerInfo(), () => refreshFileUI(), () => renderProjList(), () => nlaHeads(), () => nlaInspector(), () => nlaLibrary()]) { try { f(); } catch (e) {} }
+}
+
 let toastTimer = 0;
 function toast(msg, kind = '', ms = 4500) {
   el.toast.textContent = msg; el.toast.className = kind; el.toast.style.display = 'block';
@@ -318,7 +396,7 @@ const cam = { x: 0, y: 0, zoom: 1 };                               // zoom = wor
 const RT = {};                                                     // key -> { S, V, renderer }
 let M = null;                                                      // текущая модель
 let curRT = null;
-const opt = { playing: true, speed: 1, alpha: 1, loop: true, clip: true, cull: 'off', hideSkin: false, grid: true, stats: true, bg: 'checker' };
+const opt = { nda: false, playing: true, speed: 1, alpha: 1, loop: true, clip: true, cull: 'off', hideSkin: false, grid: true, stats: true, bg: 'checker' };
 
 /* ---------------- загрузка runtime ---------------- */
 let loadQueue = Promise.resolve();
@@ -333,11 +411,11 @@ function loadRuntime(key) {
     s.onload = () => {
       const S = window.spine;
       window.spine = prev;
-      if (!S) return reject(new Error('Runtime ' + key + ' не создал namespace spine'));
+      if (!S) return reject(new Error(tt('Runtime {0} не создал namespace spine', key)));
       RT[key] = { S, V: makeAdapter(key, S), renderer: null };
       resolve(RT[key]);
     };
-    s.onerror = () => { window.spine = prev; reject(new Error('Не удалось загрузить ' + RUNTIME_FILE(key))); };
+    s.onerror = () => { window.spine = prev; reject(new Error(tt('Не удалось загрузить {0}', RUNTIME_FILE(key)))); };
     document.head.appendChild(s);
   }));
   loadQueue = job.catch(() => {});
@@ -374,16 +452,18 @@ function getRenderer(rt) {
 function initGL() {
   gl = el.gl.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: true }) ||
        el.gl.getContext('experimental-webgl', { alpha: true, premultipliedAlpha: true });
-  if (!gl) { toast('WebGL недоступен', 'bad', 20000); return false; }
+  if (!gl) { toast(tt('WebGL недоступен'), 'bad', 20000); return false; }
   const de = gl.drawElements.bind(gl), da = gl.drawArrays.bind(gl);
   gl.drawElements = (...a) => { drawCalls++; de(...a); };
   gl.drawArrays = (...a) => { drawCalls++; da(...a); };
   return true;
 }
+let wmDirty = true;
 function resizeCanvas() {
   dpr = window.devicePixelRatio || 1;
   const w = Math.max(1, Math.round(el.viewport.clientWidth * dpr)), h = Math.max(1, Math.round(el.viewport.clientHeight * dpr));
-  for (const c of [el.gl, el.grid]) { if (c.width !== w) c.width = w; if (c.height !== h) c.height = h; }
+  wmDirty = true;
+  for (const c of [el.gl, el.grid, el.wm]) { if (c.width !== w) c.width = w; if (c.height !== h) c.height = h; }
   if (gl) gl.viewport(0, 0, w, h);
 }
 new ResizeObserver(resizeCanvas).observe(el.viewport);
@@ -414,12 +494,12 @@ el.verBadge.textContent = el.verSelect.value;
 
 function updateVerInfo() {
   const sk = currentSkeletonEntry();
-  if (!sk) { el.verInfo.className = ''; el.verInfo.textContent = 'Версия данных: —'; return; }
+  if (!sk) { el.verInfo.className = ''; el.verInfo.textContent = tt('Версия данных: —'); return; }
   const dv = sk.dataVer, sel = el.verSelect.value;
-  if (!dv) { el.verInfo.className = 'warn'; el.verInfo.textContent = 'Версия данных не определена. Runtime: ' + sel; return; }
+  if (!dv) { el.verInfo.className = 'warn'; el.verInfo.textContent = tt('Версия данных не определена. Runtime: {0}', sel); return; }
   const match = dv.major + '.' + dv.minor === sel;
   el.verInfo.className = match ? 'ok' : 'bad';
-  el.verInfo.textContent = `Версия данных: ${dv.raw}` + (match ? ` → совпадает с runtime ${sel}` : ` → НЕ совпадает с runtime ${sel} (возможны ошибки)`);
+  el.verInfo.textContent = tt('Версия данных: {0}', dv.raw) + (match ? tt(' → совпадает с runtime {0}', sel) : tt(' → НЕ совпадает с runtime {0} (возможны ошибки)', sel));
 }
 
 /* ---------------- файлы ---------------- */
@@ -441,7 +521,7 @@ async function ingest(list) {
         FILES.atlases.push({ name: f.name, size: f.size, text: await f.text() });
       } else if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
         const url = URL.createObjectURL(f); const img = new Image(); img.src = url;
-        await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error('Не удалось декодировать ' + f.name)); });
+        await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error(tt('Не удалось декодировать {0}', f.name))); });
         FILES.images.set(f.name.toLowerCase(), { name: f.name, size: f.size, img, w: img.naturalWidth, h: img.naturalHeight });
       }
     } catch (e) { console.error(e); toast(`${f.name}: ${e.message}`, 'bad'); }
@@ -450,12 +530,12 @@ async function ingest(list) {
   if (FILES.skeletons.length && (!FILES.atlases.length || !FILES.images.size)) await fetchCompanions(FILES.skeletons[0].name);
   refreshFileUI();
   if (FILES.skeletons.length) await loadModel();
-  else toast('Нужен файл скелета (.json или .skel)', 'warn');
+  else toast(tt('Нужен файл скелета (.json или .skel)'), 'warn');
 }
 function currentSkeletonEntry() { return FILES.skeletons[+el.skelSelect.value || 0] || null; }
 function refreshFileUI() {
   el.skelSelect.innerHTML = '';
-  FILES.skeletons.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = 'Скелет: ' + s.name; el.skelSelect.appendChild(o); });
+  FILES.skeletons.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = tt('Скелет: {0}', s.name); el.skelSelect.appendChild(o); });
   el.skelSelect.style.display = FILES.skeletons.length > 1 ? '' : 'none';
   const rows = [];
   for (const s of FILES.skeletons) rows.push(`<div class="f"><span>${esc(s.name)}</span><span>${fmtBytes(s.size)}${s.dataVer ? ' · v' + s.dataVer.full : ''}</span></div>`);
@@ -506,12 +586,19 @@ async function openServerSkeleton(path) {
     await ingest(files);
   } catch (e) { console.error(e); toast(e.message, 'bad'); }
 }
+let PROJ_LIST = [];
+function renderProjList() {
+  const sel = $('projSelect'), cur = sel.value;
+  if (!PROJ_LIST.length) return;
+  sel.innerHTML = '<option value="">' + tt('📁 Проекты в папке плеера…') + '</option>' + PROJ_LIST.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  sel.value = cur;
+}
 async function scanFolder() {
   try { const r = await fetch('__list', { cache: 'no-store' }); if (!r.ok) return; SERVER_FILES = await r.json(); } catch (e) { return; }
   const sk = SERVER_FILES.filter(p => /\.(json|skel)$/i.test(p));
   const sel = $('projSelect');
   if (!sk.length) return;
-  sel.innerHTML = '<option value="">📁 Проекты в папке плеера…</option>' + sk.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  PROJ_LIST = sk; renderProjList();
   sel.style.display = '';
   sel.onchange = () => { if (sel.value) openServerSkeleton(sel.value); };
   if (!FILES.skeletons.length) { sel.value = sk[0]; openServerSkeleton(sk[0]); }
@@ -526,6 +613,46 @@ window.addEventListener('dragleave', e => { e.preventDefault(); if (--dragDepth 
 window.addEventListener('dragover', e => e.preventDefault());
 window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; document.body.classList.remove('dragging'); ingest(e.dataTransfer.files); });
 
+
+/* ---------- NDA: графика → плейсхолдер (силуэт по альфе исходника, UV сохраняются) ---------- */
+function ndaFill(t, atlas, gl) {
+  const W = t.rec.w, H = t.rec.h, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+  let regs = atlas.regions.filter(r => r.texture === t.tex || (r.page && r.page.texture === t.tex));
+  if (!regs.length) regs = atlas.regions;
+  const hueOf = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % 360; };
+  c.fillStyle = '#2b2f3f'; c.fillRect(0, 0, W, H);
+  for (const r of regs) {
+    const x0 = Math.floor(Math.min(r.u, r.u2) * W), y0 = Math.floor(Math.min(r.v, r.v2) * H);
+    const x1 = Math.ceil(Math.max(r.u, r.u2) * W), y1 = Math.ceil(Math.max(r.v, r.v2) * H), w = x1 - x0, h = y1 - y0;
+    if (w < 2 || h < 2) continue;
+    const hu = hueOf(r.name);
+    c.save(); c.beginPath(); c.rect(x0, y0, w, h); c.clip();
+    c.fillStyle = `hsl(${hu},24%,36%)`; c.fillRect(x0, y0, w, h);
+    c.strokeStyle = `hsl(${hu},24%,42%)`; c.lineWidth = Math.max(4, Math.min(w, h) / 14);
+    const st = Math.max(14, Math.min(w, h) / 5);
+    c.beginPath(); for (let k = -h; k < w + h; k += st) { c.moveTo(x0 + k, y0 + h); c.lineTo(x0 + k + h, y0); } c.stroke();
+    c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 2; c.strokeRect(x0 + 1, y0 + 1, w - 2, h - 2);
+    const rot = r.rotate === true || r.degrees === 90 || r.degrees === 270;    // в атласе регион повёрнут — пишем текст вдоль спрайта
+    const lw = rot ? h : w, lh = rot ? w : h;
+    if (lw > 34 && lh > 12) {
+      const txt = 'NDA Placeholder';
+      c.translate(x0 + w / 2, y0 + h / 2); if (rot) c.rotate(r.degrees === 270 ? -Math.PI / 2 : Math.PI / 2);
+      let fs = Math.min(lh * 0.32, 56); c.font = `700 ${fs}px Segoe UI, Arial, sans-serif`;
+      const tw = c.measureText(txt).width; if (tw > lw * 0.86) { fs = fs * lw * 0.86 / tw; c.font = `700 ${fs}px Segoe UI, Arial, sans-serif`; }
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillStyle = 'rgba(0,0,0,.55)'; c.fillText(txt, 1, fs * 0.06 + 1);
+      c.fillStyle = '#fff'; c.fillText(txt, 0, fs * 0.06);
+    }
+    c.restore();
+  }
+  c.globalCompositeOperation = 'destination-in'; c.drawImage(t.rec.img, 0, 0);       // силуэт = альфа оригинала
+  t.tex.bind();
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cv);
+  if (t.tex.useMipMaps) gl.generateMipmap(gl.TEXTURE_2D);
+}
+
 /* ---------------- построение модели ---------------- */
 async function loadModel(keep) {
   const sk = currentSkeletonEntry();
@@ -534,7 +661,7 @@ async function loadModel(keep) {
   let key = el.verSelect.value;
   if (el.autoVer.checked) {
     const p = pickRuntime(sk.dataVer);
-    if (p.key) { key = p.key; if (el.verSelect.value !== key) { el.verSelect.value = key; } if (!p.exact) toast(`Версии ${sk.dataVer.full} нет — использую ближайший runtime ${key}`, 'warn'); }
+    if (p.key) { key = p.key; if (el.verSelect.value !== key) { el.verSelect.value = key; } if (!p.exact) toast(tt('Версии {0} нет — использую ближайший runtime {1}', sk.dataVer.full, key), 'warn'); }
   }
   lsSet('suv.ver', key);
   el.verBadge.textContent = key;
@@ -542,7 +669,7 @@ async function loadModel(keep) {
 
   let rt;
   try { rt = await loadRuntime(key); } catch (e) { console.error(e); toast(e.message, 'bad', 9000); return; }
-  if (sk.kind === 'skel' && !rt.V.hasBinary) { disposeModel(); el.empty.style.display = ''; toast(`Runtime ${key} не умеет читать бинарный .skel — экспортируйте JSON`, 'bad', 9000); return; }
+  if (sk.kind === 'skel' && !rt.V.hasBinary) { disposeModel(); el.empty.style.display = ''; toast(tt('Runtime {0} не умеет читать бинарный .skel — экспортируйте JSON', key), 'bad', 9000); return; }
 
   try {
     disposeModel();
@@ -553,13 +680,13 @@ async function loadModel(keep) {
 
     // --- атлас ---
     const atlasEntry = FILES.atlases.find(a => stem(a.name).toLowerCase() === stem(sk.name).toLowerCase()) || FILES.atlases[0];
-    if (!atlasEntry) throw new Error('Не найден .atlas — перетащите .json/.skel вместе с .atlas и .png (или положите их в папку плеера)');
+    if (!atlasEntry) throw new Error(tt('Не найден .atlas — перетащите .json/.skel вместе с .atlas и .png (или положите их в папку плеера)'));
     const textures = [];                                           // для статистики
     const buildTex = (pageName, page) => {
       const lower = baseName(pageName).toLowerCase();
       let rec = FILES.images.get(lower);
       if (!rec && FILES.images.size === 1) rec = [...FILES.images.values()][0];
-      if (!rec) throw new Error('В файлах нет текстуры: ' + pageName);
+      if (!rec) throw new Error(tt('В файлах нет текстуры: {0}', pageName));
       const mode = el.pmaSel.value;
       const pma = mode === 'pma' ? true : mode === 'straight' ? false : ((page && page.pma === true) || /pma/i.test(rec.name));
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, !pma);     // в 4.3 GLTexture сам делает то же
@@ -572,6 +699,7 @@ async function loadModel(keep) {
     };
     const atlas = new S.TextureAtlas(atlasEntry.text, V.hasSetTexture ? () => null : (path) => buildTex(path, null));
     if (V.hasSetTexture) for (const page of atlas.pages) page.setTexture(buildTex(page.name, page));
+    if (opt.nda) for (const t of textures) ndaFill(t, atlas, gl);
 
     // --- скелет ---
     // Регионы, упакованные с индексами (Smoke_1 -> "Smoke" index:1), и отсутствующие картинки не роняют загрузку
@@ -619,12 +747,12 @@ async function loadModel(keep) {
     el.empty.style.display = 'none';
     updateVerInfo();
     nlaOnModelLoaded();
-    if (missing.length) toast(`В атласе нет регионов (пропущены): ${[...new Set(missing)].join(', ')}`, 'warn', 9000);
+    if (missing.length) toast(tt('В атласе нет регионов (пропущены): {0}', [...new Set(missing)].join(', ')), 'warn', 9000);
   } catch (e) {
     console.error(e);
     M = null;
     const dv = sk.dataVer, mism = dv && (dv.major + '.' + dv.minor) !== key;
-    toast(`Ошибка (runtime ${key}): ${e.message || e}` + (mism ? ` — данные версии ${dv.full} не совместимы с runtime ${key}, выберите ${pickRuntime(dv).key || 'другую'} версию` : ''), 'bad', 12000);
+    toast(tt('Ошибка (runtime {0}): {1}', key, e.message || e) + (mism ? tt(' — данные версии {0} не совместимы с runtime {1}, выберите {2} версию', dv.full, key, pickRuntime(dv).key || tt('другую')) : ''), 'bad', 12000);
     el.empty.style.display = '';
   }
 }
@@ -746,12 +874,13 @@ el.homeBtn.onclick = () => { cam.x = 0; cam.y = 0; cam.zoom = 1 / dpr; };
 el.zoomRange.addEventListener('input', e => zoomAt((1 / (Math.pow(10, +e.target.value) * dpr)) / cam.zoom, el.gl.width / 2, el.gl.height / 2));
 
 let drag = null;
-el.gl.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; el.gl.setPointerCapture(e.pointerId); el.gl.classList.add('panning'); });
+el.gl.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, bg: BG.edit && !!BG.img && e.button === 0 }; el.gl.setPointerCapture(e.pointerId); el.gl.classList.add('panning'); });
 el.gl.addEventListener('pointermove', e => {
   const rect = el.gl.getBoundingClientRect(), mx = (e.clientX - rect.left) * dpr, my = (e.clientY - rect.top) * dpr;
   cursorWorld = { x: cam.x + (mx - el.gl.width / 2) * cam.zoom, y: cam.y - (my - el.gl.height / 2) * cam.zoom };
   if (!drag) return;
-  cam.x -= (e.clientX - drag.x) * dpr * cam.zoom; cam.y += (e.clientY - drag.y) * dpr * cam.zoom;
+  if (drag.bg) { BG.x += (e.clientX - drag.x) * dpr * cam.zoom; BG.y -= (e.clientY - drag.y) * dpr * cam.zoom; }
+  else { cam.x -= (e.clientX - drag.x) * dpr * cam.zoom; cam.y += (e.clientY - drag.y) * dpr * cam.zoom; }
   drag.x = e.clientX; drag.y = e.clientY;
 });
 const endDrag = () => { drag = null; el.gl.classList.remove('panning'); };
@@ -761,8 +890,9 @@ el.gl.addEventListener('dblclick', fitView);
 el.gl.addEventListener('wheel', e => {
   e.preventDefault();
   const rect = el.gl.getBoundingClientRect();
-  const k = Math.pow(1.0015, -e.deltaY * (e.deltaMode === 1 ? 33 : 1));
-  zoomAt(1 / k, (e.clientX - rect.left) * dpr, (e.clientY - rect.top) * dpr);
+  const k = Math.pow(1.0015, -e.deltaY * (e.deltaMode === 1 ? 33 : 1)), mx = (e.clientX - rect.left) * dpr, my = (e.clientY - rect.top) * dpr;
+  if (BG.edit && BG.img && !e.ctrlKey) bgScaleAt(k, mx, my);
+  else zoomAt(1 / k, mx, my);
 }, { passive: false });
 let cursorWorld = null;
 
@@ -789,6 +919,9 @@ dbgBoxes.forEach(c => c.addEventListener('change', () => { applyDebugOpts(); lsS
 dbgBoxes.forEach(c => { c.checked = lsGet('suv.dbg.' + c.dataset.dbg, '0') === '1'; });
 el.hideSkin.addEventListener('change', () => opt.hideSkin = el.hideSkin.checked);
 el.clipChk.addEventListener('change', () => opt.clip = el.clipChk.checked);
+opt.nda = lsGet('suv.nda', '0') === '1'; el.ndaChk.checked = opt.nda;
+el.ndaChk.addEventListener('change', () => { opt.nda = el.ndaChk.checked; lsSet('suv.nda', opt.nda ? '1' : '0'); switchRuntime(); });
+el.langBtns.addEventListener('click', e => { const b = e.target.closest('button[data-lang]'); if (b) setLang(b.dataset.lang, true); });
 el.cullSel.addEventListener('change', () => opt.cull = el.cullSel.value);
 
 window.addEventListener('keydown', e => {
@@ -801,15 +934,109 @@ window.addEventListener('keydown', e => {
     case 'm': toggle($('dbgMesh')); break;
     case 'c': toggle(el.clipChk); break;
     case 'h': toggle(el.hideSkin); break;
+    case 'n': toggle(el.ndaChk); break;
+    case 'e': if (BG.img) toggle(bgEl.edit); break;
     case 'g': toggle(el.gridChk); break;
     case 's': toggle(el.statsChk); break;
   }
 });
 
+
+/* ---------------- свой фон (сцена) ---------------- */
+const BG = { img: null, x: 0, y: 0, s: 1, a: 1, edit: false };
+const bgEl = { load: $('bgLoad'), clear: $('bgClear'), file: $('bgFile'), edit: $('bgEdit'), scale: $('bgScale'), scaleVal: $('bgScaleVal'),
+  alpha: $('bgAlpha'), alphaVal: $('bgAlphaVal'), fit: $('bgFit'), reset: $('bgReset') };
+function bgUI() {
+  const on = !!BG.img;
+  for (const k of ['clear', 'edit', 'scale', 'alpha', 'fit', 'reset']) bgEl[k].disabled = !on;
+  bgEl.scale.value = Math.log10(BG.s); bgEl.scaleVal.textContent = Math.round(BG.s * 100) + '%';
+  bgEl.alpha.value = BG.a; bgEl.alphaVal.textContent = Math.round(BG.a * 100) + '%';
+  bgEl.edit.checked = BG.edit; el.viewport.classList.toggle('bgedit', BG.edit && on);
+}
+function bgFit() {
+  if (!BG.img) return;
+  const W = el.gl.width, H = el.gl.height, vw = W * cam.zoom, vh = H * cam.zoom;
+  BG.s = Math.min(vw / BG.img.naturalWidth, vh / BG.img.naturalHeight) * 0.95;
+  BG.x = cam.x; BG.y = cam.y; bgUI();
+}
+bgEl.load.addEventListener('click', () => bgEl.file.click());
+bgEl.file.addEventListener('change', e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  const img = new Image(), url = URL.createObjectURL(f);
+  img.onload = () => { if (BG.img) URL.revokeObjectURL(BG.img.src); BG.img = img; BG.a = 1; BG.edit = true; bgFit(); };
+  img.onerror = () => { URL.revokeObjectURL(url); toast(tt('Не удалось загрузить изображение: {0}', f.name), 'bad'); };
+  img.src = url;
+});
+bgEl.clear.addEventListener('click', () => { if (BG.img) URL.revokeObjectURL(BG.img.src); BG.img = null; BG.edit = false; BG.s = 1; bgUI(); });
+bgEl.edit.addEventListener('change', () => { BG.edit = bgEl.edit.checked; bgUI(); });
+bgEl.fit.addEventListener('click', bgFit);
+bgEl.reset.addEventListener('click', () => { BG.x = 0; BG.y = 0; BG.s = 1; BG.a = 1; bgUI(); });
+bgEl.scale.addEventListener('input', () => { BG.s = Math.pow(10, +bgEl.scale.value); bgEl.scaleVal.textContent = Math.round(BG.s * 100) + '%'; });
+bgEl.alpha.addEventListener('input', () => { BG.a = +bgEl.alpha.value; bgEl.alphaVal.textContent = Math.round(BG.a * 100) + '%'; });
+function bgScaleAt(factor, mx, my) {                                // масштаб вокруг курсора (мир остаётся под курсором)
+  const px = cam.x + (mx - el.gl.width / 2) * cam.zoom, py = cam.y - (my - el.gl.height / 2) * cam.zoom;
+  const ns = Math.min(Math.max(BG.s * factor, 0.02), 16), f = ns / BG.s;
+  BG.x = px + (BG.x - px) * f; BG.y = py + (BG.y - py) * f; BG.s = ns; bgUI();
+}
+function drawBg(ctx, W, H) {
+  if (!BG.img) return;
+  const sc = 1 / cam.zoom, w = BG.img.naturalWidth * BG.s * sc, h = BG.img.naturalHeight * BG.s * sc;
+  const sx = (BG.x - cam.x) * sc + W / 2, sy = H / 2 - (BG.y - cam.y) * sc;
+  ctx.globalAlpha = BG.a; ctx.drawImage(BG.img, sx - w / 2, sy - h / 2, w, h); ctx.globalAlpha = 1;
+  if (BG.edit) { ctx.strokeStyle = 'rgba(56,189,248,.9)'; ctx.setLineDash([6, 4]); ctx.lineWidth = 1.5; ctx.strokeRect(sx - w / 2, sy - h / 2, w, h); ctx.setLineDash([]); }
+}
+
+
+/* ---------------- ватермарка ---------------- */
+const WM = Object.assign({ on: false, text: 'CONFIDENTIAL', layout: 'tile', color: '#ffffff', size: 32, alpha: 0.25, angle: -30 },
+  (() => { try { return JSON.parse(lsGet('suv.wm', '{}')); } catch (e) { return {}; } })());
+const wmEl = { on: $('wmOn'), text: $('wmText'), layout: $('wmLayout'), color: $('wmColor'), size: $('wmSize'), sizeVal: $('wmSizeVal'),
+  alpha: $('wmAlpha'), alphaVal: $('wmAlphaVal'), angle: $('wmAngle'), angleVal: $('wmAngleVal') };
+function wmUI() {
+  wmEl.on.checked = WM.on; wmEl.text.value = WM.text; wmEl.layout.value = WM.layout; wmEl.color.value = WM.color;
+  wmEl.size.value = WM.size; wmEl.sizeVal.textContent = WM.size;
+  wmEl.alpha.value = WM.alpha; wmEl.alphaVal.textContent = Math.round(WM.alpha * 100) + '%';
+  wmEl.angle.value = WM.angle; wmEl.angleVal.textContent = WM.angle + '°';
+}
+function wmChanged() { wmDirty = true; lsSet('suv.wm', JSON.stringify(WM)); }
+wmEl.on.addEventListener('change', () => { WM.on = wmEl.on.checked; wmChanged(); });
+wmEl.text.addEventListener('input', () => { WM.text = wmEl.text.value; wmChanged(); });
+wmEl.layout.addEventListener('change', () => { WM.layout = wmEl.layout.value; wmChanged(); });
+wmEl.color.addEventListener('input', () => { WM.color = wmEl.color.value; wmChanged(); });
+wmEl.size.addEventListener('input', () => { WM.size = +wmEl.size.value; wmEl.sizeVal.textContent = WM.size; wmChanged(); });
+wmEl.alpha.addEventListener('input', () => { WM.alpha = +wmEl.alpha.value; wmEl.alphaVal.textContent = Math.round(WM.alpha * 100) + '%'; wmChanged(); });
+wmEl.angle.addEventListener('input', () => { WM.angle = +wmEl.angle.value; wmEl.angleVal.textContent = WM.angle + '°'; wmChanged(); });
+function wmDraw() {
+  if (!wmDirty) return;
+  wmDirty = false;
+  const c = el.wm, ctx = c.getContext('2d'), W = c.width, H = c.height;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+  const text = (WM.text || '').trim();
+  if (!WM.on || !text) return;
+  const fs = WM.size * (window.devicePixelRatio || 1), ang = WM.angle * Math.PI / 180;
+  ctx.font = `700 ${fs}px Segoe UI, Arial, sans-serif`; ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(1.5, fs / 12); ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.fillStyle = WM.color; ctx.globalAlpha = WM.alpha;
+  const put = (x, y) => { ctx.strokeText(text, x, y); ctx.fillText(text, x, y); };
+  const tw = ctx.measureText(text).width, mg = 24 * (window.devicePixelRatio || 1);
+  if (WM.layout === 'tile') {
+    ctx.translate(W / 2, H / 2); ctx.rotate(ang); ctx.textAlign = 'center';
+    const gx = tw + fs * 2.2, gy = fs * 3.4, R = Math.hypot(W, H) / 2 + gy;
+    let row = 0;
+    for (let y = -R; y <= R; y += gy, row++) for (let x = -R - (row % 2 ? gx / 2 : 0); x <= R + gx; x += gx) put(x, y);
+  } else {
+    const pos = { center: [W / 2, H / 2, 'center'], tl: [mg, mg + fs / 2, 'left'], tr: [W - mg, mg + fs / 2, 'right'], bl: [mg, H - mg - fs / 2, 'left'], br: [W - mg, H - mg - fs / 2, 'right'] }[WM.layout] || [W / 2, H / 2, 'center'];
+    ctx.translate(pos[0], pos[1]); ctx.rotate(ang); ctx.textAlign = pos[2]; put(0, 0);
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+}
+bgUI(); wmUI();
+
 /* ---------------- сетка / оси ---------------- */
 function drawGrid() {
   const c = el.grid, ctx = c.getContext('2d'), W = c.width, H = c.height;
   ctx.clearRect(0, 0, W, H);
+  drawBg(ctx, W, H);
   if (!opt.grid) return;
   const light = el.bgSelect.value === '#e8e8ee' || el.bgSelect.value === '#8a8a95';
   const scale = 1 / cam.zoom;                                       // device px per unit
@@ -901,7 +1128,7 @@ function frame(now) {
       S_.dcDebug = drawCalls;
     }
   }
-  nlaDraw();
+  nlaDraw(); wmDraw();
   if (now - lastStats > 250) { lastStats = now; updateStats(); }
 }
 
@@ -910,7 +1137,7 @@ function updateStats() {
   const pct = 100 / (cam.zoom * dpr);
   el.zoomVal.textContent = pct.toFixed(pct < 10 ? 1 : 0) + '%';
   if (document.activeElement !== el.zoomRange) el.zoomRange.value = Math.log10(1 / (cam.zoom * dpr));
-  el.hud.textContent = cursorWorld ? `x ${cursorWorld.x.toFixed(1)}  y ${cursorWorld.y.toFixed(1)}  ·  zoom ${pct.toFixed(0)}%` : `zoom ${pct.toFixed(0)}%`;
+  el.hud.textContent = (opt.nda ? tt('NDA режим') + '  ·  ' : '') + (BG.edit && BG.img ? tt('Фон: редактирование') + '  ·  ' : '') + (cursorWorld ? `x ${cursorWorld.x.toFixed(1)}  y ${cursorWorld.y.toFixed(1)}  ·  zoom ${pct.toFixed(0)}%` : `zoom ${pct.toFixed(0)}%`);
   if (!opt.stats) return;
   const cls = (v, good, mid) => v >= good ? 'ok' : v >= mid ? 'warn' : 'bad';
   const heap = performance.memory ? performance.memory.usedJSHeapSize : null;
@@ -924,20 +1151,20 @@ function updateStats() {
     const disk = M.textures.reduce((s, t) => s + t.rec.size, 0);
     const T = M.totals;
     h += `<span class="k">VRAM (est.) </span>${fmtBytes(vram)}\n`;
-    h += `\n<span class="h">Геометрия</span>\n`;
-    h += `<span class="k">Vertices    </span>${S_.verts}  <span class="k">/ ${T.verts} всего</span>\n`;
-    h += `<span class="k">Triangles   </span>${S_.tris}  <span class="k">/ ${T.tris} всего</span>\n`;
+    h += `\n<span class="h">${tt('Геометрия')}</span>\n`;
+    h += `<span class="k">Vertices    </span>${S_.verts}  <span class="k">/ ${tt('{0} всего', T.verts)}</span>\n`;
+    h += `<span class="k">Triangles   </span>${S_.tris}  <span class="k">/ ${tt('{0} всего', T.tris)}</span>\n`;
     h += `<span class="k">Meshes      </span>${S_.meshes}  <span class="k">/ ${T.meshes}</span>\n`;
     h += `<span class="k">Regions     </span>${S_.regions}  <span class="k">/ ${T.regions}</span>\n`;
-    h += `<span class="k">Clipping    </span>${S_.clips ? `<span class="warn">${S_.clips}${opt.clip ? '' : ' (выкл)'}</span>` : '0'}\n`;
+    h += `<span class="k">Clipping    </span>${S_.clips ? `<span class="warn">${S_.clips}${opt.clip ? '' : ' ' + tt('(выкл)')}</span>` : '0'}\n`;
     h += `<span class="k">Bones/Slots </span>${M.skeleton.bones.length} / ${M.skeleton.slots.length}\n`;
-    h += `\n<span class="h">Вес файлов</span>\n`;
+    h += `\n<span class="h">${tt('Вес файлов')}</span>\n`;
     h += `<span class="k">${M.sk.kind === 'json' ? 'JSON        ' : 'SKEL        '}</span>${fmtBytes(M.sk.size)}\n`;
     h += `<span class="k">Atlas       </span>${fmtBytes(M.atlasEntry.size)}\n`;
-    h += `<span class="k">Графика     </span>${fmtBytes(disk)}  <span class="k">(${M.textures.length} шт.)</span>\n`;
-    h += `<span class="k">Итого       </span>${fmtBytes(M.sk.size + M.atlasEntry.size + disk)}\n`;
+    h += `<span class="k">${tt('Графика').padEnd(12)}</span>${fmtBytes(disk)}  <span class="k">(${tt('{0} шт.', M.textures.length)})</span>\n`;
+    h += `<span class="k">${tt('Итого').padEnd(12)}</span>${fmtBytes(M.sk.size + M.atlasEntry.size + disk)}\n`;
     h += `\n<span class="k">runtime ${M.key} · data ${M.sk.dataVer ? M.sk.dataVer.full : '?'}</span>`;
-  } else h += `\n<span class="k">Модель не загружена</span>`;
+  } else h += `\n<span class="k">${tt('Модель не загружена')}</span>`;
   el.stats.innerHTML = h;
 }
 
@@ -1043,7 +1270,7 @@ function nlaLibrary() {
   if (!M) { nel.lib.innerHTML = ''; return; }
   const f = nel.libFilter.value.trim().toLowerCase();
   nel.lib.innerHTML = M.data.animations.filter(a => !f || a.name.toLowerCase().includes(f)).map(a =>
-    `<div class="lib-item" draggable="true" data-a="${esc(a.name)}" title="Перетащите на дорожку · двойной клик — в конец выбранной дорожки">
+    `<div class="lib-item" draggable="true" data-a="${esc(a.name)}" title="${tt('Перетащите на дорожку · двойной клик — в конец выбранной дорожки')}">
        <span class="sw" style="background:hsl(${hue(a.name)},50%,45%)"></span><span class="n">${esc(a.name)}</span><span class="d">${a.duration.toFixed(2)}s</span></div>`).join('');
 }
 nel.libFilter.addEventListener('input', nlaLibrary);
@@ -1057,14 +1284,14 @@ nel.lib.addEventListener('dblclick', e => { const it = e.target.closest('.lib-it
 
 /* --- заголовки дорожек --- */
 function nlaHeads() {
-  const h = [`<div class="ruler"><button id="nlaAddTrack" title="Добавить дорожку">+ Дорожка</button></div>`];
+  const h = [`<div class="ruler"><button id="nlaAddTrack" title="${tt('Добавить дорожку')}">${tt('+ Дорожка')}</button></div>`];
   NLA.tracks.forEach((tr, k) => {
     h.push(`<div class="trk${k === NLA.selTrack ? ' sel' : ''}" data-t="${k}">
       <div class="r1"><span class="nm">${k === 0 ? '◆ ' : ''}${esc(tr.name)}</span>
-        <button data-act="add" class="add${tr.add ? ' on' : ''}" title="Additive (прибавлять к нижним дорожкам)">A</button>
+        <button data-act="add" class="add${tr.add ? ' on' : ''}" title="${tt('Additive (прибавлять к нижним дорожкам)')}">A</button>
         <button data-act="mute" class="${tr.mute ? 'on' : ''}" title="Mute">M</button>
-        <button data-act="del" title="Удалить дорожку">✕</button></div>
-      <div class="r2"><input type="range" data-act="w" min="0" max="1" step="0.01" value="${tr.weight}" title="Вес дорожки"><span class="wv">${tr.weight.toFixed(2)}</span></div>
+        <button data-act="del" title="${tt('Удалить дорожку')}">✕</button></div>
+      <div class="r2"><input type="range" data-act="w" min="0" max="1" step="0.01" value="${tr.weight}" title="${tt('Вес дорожки')}"><span class="wv">${tr.weight.toFixed(2)}</span></div>
     </div>`);
   });
   nel.heads.innerHTML = h.join('');
@@ -1089,26 +1316,26 @@ nel.heads.addEventListener('input', e => {
 
 /* --- инспектор --- */
 function nlaInspector() {
-  if (!M) { nel.insp.innerHTML = '<div class="hint">Загрузите модель.</div>'; return; }
+  if (!M) { nel.insp.innerHTML = '<div class="hint">' + tt('Загрузите модель.') + '</div>'; return; }
   const c = NLA.sel, k = c ? trackOf(c) : -1;
   let h = '';
   if (c && k >= 0) {
     const L = info(c);
-    h += `<div class="ttl2">Клип · ${esc(NLA.tracks[k].name)}</div>
+    h += `<div class="ttl2">${tt('Клип · {0}', esc(NLA.tracks[k].name))}</div>
     <div class="g">
-      <label>Анимация</label><select data-k="anim">${M.data.animations.map(a => `<option value="${esc(a.name)}"${a.name === c.anim ? ' selected' : ''}>${esc(a.name)}</option>`).join('')}</select>
-      <label>Начало, s</label><input type="number" data-k="start" min="0" step="0.05" value="${+c.start.toFixed(3)}">
-      <label>Повторы</label><input type="number" data-k="repeats" min="0.05" step="1" value="${+c.repeats.toFixed(3)}">
-      <label>Скорость</label><input type="number" data-k="speed" min="0.05" step="0.05" value="${c.speed}">
-      <label>Длина, s</label><span style="font-family:Consolas,monospace">${L.dur.toFixed(2)} (${L.start.toFixed(2)}→${L.end.toFixed(2)})</span>
+      <label>${tt('Анимация')}</label><select data-k="anim">${M.data.animations.map(a => `<option value="${esc(a.name)}"${a.name === c.anim ? ' selected' : ''}>${esc(a.name)}</option>`).join('')}</select>
+      <label>${tt('Начало, s')}</label><input type="number" data-k="start" min="0" step="0.05" value="${+c.start.toFixed(3)}">
+      <label>${tt('Повторы')}</label><input type="number" data-k="repeats" min="0.05" step="1" value="${+c.repeats.toFixed(3)}">
+      <label>${tt('Скорость')}</label><input type="number" data-k="speed" min="0.05" step="0.05" value="${c.speed}">
+      <label>${tt('Длина, s')}</label><span style="font-family:Consolas,monospace">${L.dur.toFixed(2)} (${L.start.toFixed(2)}→${L.end.toFixed(2)})</span>
     </div>
-    <div class="btns"><button data-op="dup">Дублировать</button><button data-op="here">← к плейхеду</button><button data-op="go">Плейхед →</button><button data-op="del">Удалить</button></div>`;
+    <div class="btns"><button data-op="dup">${tt('Дублировать')}</button><button data-op="here">${tt('← к плейхеду')}</button><button data-op="go">${tt('Плейхед →')}</button><button data-op="del">${tt('Удалить')}</button></div>`;
   }
-  h += `<div class="hint"><b>Перетаскивание</b> анимации из списка на дорожку — добавить клип.<br>
-    Клип тащится мышью по времени и между дорожками, правый край — длина (повторы).<br>
-    <b>Наложение</b> клипов на одной дорожке = плавное смешивание (кроссфейд по длине перекрытия).<br>
-    Дорожки выше ◆ Base накладываются с весом, <b>A</b> — additive.<br>
-    Колесо — зум, Shift+колесо / ПКМ / СКМ — прокрутка, клик по линейке — перемотка, Del — удалить клип.</div>`;
+  h += `<div class="hint">${tt('<b>Перетаскивание</b> анимации из списка на дорожку — добавить клип.<br>')}
+    ${tt('Клип тащится мышью по времени и между дорожками, правый край — длина (повторы).<br>')}
+    ${tt('<b>Наложение</b> клипов на одной дорожке = плавное смешивание (кроссфейд по длине перекрытия).<br>')}
+    ${tt('Дорожки выше ◆ Base накладываются с весом, <b>A</b> — additive.<br>')}
+    ${tt('Колесо — зум, Shift+колесо / ПКМ / СКМ — прокрутка, клик по линейке — перемотка, Del — удалить клип.')}</div>`;
   nel.insp.innerHTML = h;
   nel.insp.querySelectorAll('[data-k]').forEach(inp => inp.addEventListener('change', () => {
     const key = inp.dataset.k;
@@ -1387,8 +1614,8 @@ nel.imp.addEventListener('click', () => nel.impFile.click());
 nel.impFile.addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f || !M) return;
-  try { nlaLoadData(JSON.parse(await f.text())); NLA.sel = null; NLA.time = 0; nlaEnable(true); nlaChanged(true); nlaFit(); toast('NLA загружен: ' + f.name); }
-  catch (err) { toast('Не удалось прочитать NLA: ' + err.message, 'bad'); }
+  try { nlaLoadData(JSON.parse(await f.text())); NLA.sel = null; NLA.time = 0; nlaEnable(true); nlaChanged(true); nlaFit(); toast(tt('NLA загружен: {0}', f.name)); }
+  catch (err) { toast(tt('Не удалось прочитать NLA: {0}', err.message), 'bad'); }
 });
 window.addEventListener('keydown', e => {
   if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
@@ -1403,6 +1630,7 @@ nlaHeads(); nlaInspector();
 
 /* ---------------- старт ---------------- */
 applyBg();
+setLang(lsGet('suv.lang', ''), false);
 if (initGL()) { resizeCanvas(); requestAnimationFrame(frame); scanFolder(); }
 window.__suv = { get M() { return M; }, cam, opt, FILES, ingest, loadModel, RT, S_ };   // для отладки/тестов
 </script>
