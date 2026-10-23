@@ -6,7 +6,7 @@ Spine animation viewer with runtime switching: **3.7, 3.8, 4.0, 4.1, 4.2, 4.3** 
 ## Запуск / Run
 - **Десктоп / Desktop:** `pip install pywebview`, затем `python app.py`. Проекты (.json/.skel + .atlas + .png), положенные в папку плеера, подхватываются автоматически.
 - **Браузер / Browser:** откройте страницу GitHub Pages и перетащите .json/.skel, .atlas и .png в окно.
-- [Запустить Онлайн]([runtimes/LICENSE-spine-runtimes.txt](https://nikitos-pilisos.github.io/spine-universal-viewer/))
+- [Запустить Онлайн](https://nikitos-pilisos.github.io/spine-universal-viewer/)
 
 ## Возможности / Features
 - Навигация: перемещение мышью, зум колесом к курсору, Fit
