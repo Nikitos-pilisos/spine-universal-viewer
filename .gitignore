@@ -1,0 +1,7 @@
+legacy/
+*.json
+*.atlas
+*.png
+*.skel
+__pycache__/
+/spine-webgl.js

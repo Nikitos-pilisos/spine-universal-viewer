@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spine Universal Viewer</title>
+<style>
+  :root {
+    --bg: #1e1e24; --panel: #25252d; --panel2: #1a1a20; --line: #3a3a45;
+    --text: #e0e0e8; --dim: #9a9aae; --accent: #6366f1; --accent2: #818cf8;
+    --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 13px; background: var(--bg); color: var(--text);
+         display: flex; overflow: hidden; }
+
+  #sidebar { width: 320px; flex: none; background: var(--panel); border-right: 1px solid var(--line);
+             overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
+  #sidebar::-webkit-scrollbar { width: 8px; }
+  #sidebar::-webkit-scrollbar-thumb { background: #44444f; border-radius: 4px; }
+  h2 { font-size: 16px; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--accent); color: #fff; }
+
+  .card { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .card > .title { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); font-weight: 700; }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .row > * { min-width: 0; }
+  .row.wrap { flex-wrap: wrap; }
+  .grow { flex: 1; }
+  label.lbl { font-size: 11px; color: var(--dim); text-transform: uppercase; font-weight: 700; display: flex; justify-content: space-between; }
+  label.chk { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+  input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  select, button, input[type=color] { background: #2a2a34; border: 1px solid var(--line); color: var(--text); border-radius: 5px;
+         padding: 6px 8px; font: inherit; outline: none; }
+  select { width: 100%; }
+  select:disabled, button:disabled { opacity: .45; }
+  button { cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent2); background: #30303c; }
+  input[type=color] { padding: 0; width: 34px; height: 28px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+
+  #dropZone { border: 2px dashed #4f4f61; border-radius: 8px; padding: 14px; text-align: center; cursor: pointer; background: #17171c; transition: .15s; color: var(--dim); }
+  #dropZone:hover, #dropZone.dragover, body.dragging #dropZone { border-color: var(--accent); background: #212130; color: var(--text); }
+  #fileList { font-family: Consolas, monospace; font-size: 11.5px; color: var(--dim); display: flex; flex-direction: column; gap: 2px; }
+  #fileList .f { display: flex; justify-content: space-between; gap: 8px; }
+  #fileList .f span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #verInfo { font-size: 12px; color: var(--dim); line-height: 1.4; }
+  #verInfo.warn { color: var(--warn); } #verInfo.ok { color: var(--ok); } #verInfo.bad { color: var(--bad); }
+
+  #viewport { flex: 1; position: relative; overflow: hidden; background: #2a2a33; touch-action: none; }
+  #viewport.checker { background-color: #2d2d38;
+    background-image: linear-gradient(45deg,#252530 25%,transparent 25%),linear-gradient(-45deg,#252530 25%,transparent 25%),
+                      linear-gradient(45deg,transparent 75%,#252530 75%),linear-gradient(-45deg,transparent 75%,#252530 75%);
+    background-size: 30px 30px; background-position: 0 0,0 15px,15px -15px,-15px 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #glCanvas { cursor: grab; } #glCanvas.panning { cursor: grabbing; }
+  #gridCanvas { pointer-events: none; }
+
+  #stats { position: absolute; top: 12px; right: 12px; background: rgba(16,16,20,.88); border: 1px solid #4f4f61; border-radius: 8px;
+           padding: 10px 12px; font: 12px/1.5 Consolas,'Courier New',monospace; color: #cfe; pointer-events: none; z-index: 20;
+           box-shadow: 0 4px 14px rgba(0,0,0,.5); min-width: 250px; white-space: pre; }
+  #stats .h { color: var(--accent2); font-weight: 700; }
+  #stats .k { color: #8a8aa0; }
+  #stats .ok { color: var(--ok); } #stats .warn { color: var(--warn); } #stats .bad { color: var(--bad); }
+  #hud { position: absolute; left: 12px; bottom: 10px; font: 12px Consolas,monospace; color: #b8b8c8; background: rgba(16,16,20,.7);
+         padding: 4px 8px; border-radius: 5px; pointer-events: none; z-index: 20; max-width: calc(100% - 24px); }
+  #toast { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); background: rgba(16,16,20,.92); border: 1px solid var(--line);
+           padding: 7px 14px; border-radius: 6px; z-index: 30; display: none; max-width: 70%; }
+  #toast.bad { border-color: var(--bad); color: var(--bad); } #toast.warn { border-color: var(--warn); color: var(--warn); }
+  #empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #6e6e82; font-size: 15px; pointer-events: none; text-align: center; line-height: 1.7; }
+  kbd { background: #33333d; border: 1px solid #4a4a58; border-radius: 3px; padding: 0 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <h2>Spine Universal Viewer <span class="badge" id="verBadge">—</span></h2>
+
+  <div class="card">
+    <div class="title">Версия плеера (runtime)</div>
+    <select id="verSelect"></select>
+    <label class="chk"><input type="checkbox" id="autoVer" checked> Автоопределение версии по файлу</label>
+    <div id="verInfo">Версия данных: —</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Файлы</div>
+    <div id="dropZone">Перетащите сюда (или клик):<br><b>.json / .skel</b>, <b>.atlas</b>, <b>.png</b>
+      <input type="file" id="fileInput" multiple accept=".json,.skel,.bin,.atlas,.txt,.png,.jpg,.jpeg,.webp" style="display:none">
+    </div>
+    <select id="projSelect" style="display:none"></select>
+    <select id="skelSelect" style="display:none"></select>
+    <div id="fileList"></div>
+  </div>
+
+  <div class="card">
+    <div class="title">Анимация</div>
+    <select id="animSelect" disabled><option>Загрузите модель…</option></select>
+    <div class="row">
+      <button id="playBtn" disabled style="width:42px">⏸</button>
+      <label class="chk"><input type="checkbox" id="loopChk" checked> Loop</label>
+      <span class="grow"></span>
+      <span id="timeLabel" style="font-family:Consolas,monospace;color:var(--dim)">0.00 / 0.00</span>
+    </div>
+    <input type="range" id="timeRange" min="0" max="1" step="0.001" value="0" disabled>
+    <label class="lbl"><span>Скорость</span><span id="speedVal">1.00×</span></label>
+    <input type="range" id="speedRange" min="0.05" max="3" step="0.05" value="1">
+    <label class="lbl"><span>Вес анимации (Blend Alpha)</span><span id="alphaVal">1.00</span></label>
+    <input type="range" id="alphaRange" min="0" max="1" step="0.05" value="1" disabled>
+  </div>
+
+  <div class="card">
+    <div class="title">Скин</div>
+    <select id="skinSelect" disabled><option>—</option></select>
+  </div>
+
+  <div class="card">
+    <div class="title">Вид / навигация</div>
+    <label class="lbl"><span>Масштаб</span><span id="zoomVal">100%</span></label>
+    <input type="range" id="zoomRange" min="-2" max="1.7" step="0.01" value="0">
+    <div class="row">
+      <button id="fitBtn" class="grow">Fit (F)</button>
+      <button id="oneBtn" class="grow">100%</button>
+      <button id="homeBtn" class="grow">Сброс</button>
+    </div>
+    <div class="row">
+      <span style="color:var(--dim)">Фон</span>
+      <select id="bgSelect" class="grow">
+        <option value="checker">Шахматка</option><option value="#2a2a33">Тёмный</option>
+        <option value="#8a8a95">Серый</option><option value="#e8e8ee">Светлый</option>
+        <option value="#00b140">Зелёный (chroma)</option><option value="custom">Свой цвет…</option>
+      </select>
+      <input type="color" id="bgColor" value="#444444" style="display:none">
+    </div>
+    <div class="grid2">
+      <label class="chk"><input type="checkbox" id="gridChk" checked> Сетка / оси</label>
+      <label class="chk"><input type="checkbox" id="statsChk" checked> Статистика</label>
+    </div>
+    <div style="color:var(--dim);font-size:11.5px;line-height:1.5">
+      ЛКМ/ПКМ/СКМ — перемещение · колесо — зум к курсору · двойной клик — Fit
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="title">Показать (debug)</div>
+    <div class="grid2">
+      <label class="chk"><input type="checkbox" data-dbg="drawBones"> Кости <kbd>B</kbd></label>
+      <label class="chk"><input type="checkbox" data-dbg="drawMeshTriangles" id="dbgMesh"> Меш (сетка) <kbd>M</kbd></label>
+      <label class="chk"><input type="checkbox" data-dbg="drawMeshHull"> Меш hull</label>
+      <label class="chk"><input type="checkbox" data-dbg="drawRegionAttachments"> Region-рамки</label>
+      <label class="chk"><input type="checkbox" data-dbg="drawBoundingBoxes"> Bounding boxes</label>
+      <label class="chk"><input type="checkbox" data-dbg="drawPaths"> Paths</label>
+      <label class="chk"><input type="checkbox" data-dbg="drawClipping"> Clip-полигоны</label>
+      <label class="chk"><input type="checkbox" data-dbg="drawSkeletonXY"> Origin</label>
+    </div>
+    <label class="chk"><input type="checkbox" id="hideSkin"> Скрыть картинку (только debug) <kbd>H</kbd></label>
+  </div>
+
+  <div class="card">
+    <div class="title">Рендер</div>
+    <label class="chk"><input type="checkbox" id="clipChk" checked> Clipping-маски (clipping attachments) <kbd>C</kbd></label>
+    <div>
+      <label class="lbl"><span>Клиппинг граней меша (backface)</span></label>
+      <select id="cullSel">
+        <option value="off">Выкл — обе стороны (как в Spine)</option>
+        <option value="front">Culling: скрыть обратные грани</option>
+        <option value="back">Culling: только обратные грани</option>
+      </select>
+    </div>
+    <div class="grid2">
+      <div>
+        <label class="lbl"><span>Альфа текстур</span></label>
+        <select id="pmaSel"><option value="auto">Авто</option><option value="straight">Straight</option><option value="pma">Premultiplied</option></select>
+      </div>
+      <div>
+        <label class="lbl"><span>Фильтр</span></label>
+        <select id="filterSel"><option value="linear">Linear</option><option value="nearest">Nearest</option></select>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main id="viewport" class="checker">
+  <canvas id="gridCanvas"></canvas>
+  <canvas id="glCanvas"></canvas>
+  <div id="empty">Перетащите .json/.skel + .atlas + .png<br>на окно просмотрщика</div>
+  <div id="stats"></div>
+  <div id="hud"></div>
+  <div id="toast"></div>
+</main>
+
+<script>
+'use strict';
+/* ------------------------------------------------------------------ *
+ *  Spine Universal Viewer — 3.7 / 3.8 / 4.0 / 4.1 / 4.2 / 4.3
+ *  Каждый runtime грузится лениво из ./runtimes/ в свой namespace.
+ * ------------------------------------------------------------------ */
+const VERSIONS = ['3.7', '3.8', '4.0', '4.1', '4.2', '4.3'];
+const RUNTIME_FILE = v => `runtimes/spine-webgl-${v}.js`;
+const $ = id => document.getElementById(id);
+
+const el = {
+  verSelect: $('verSelect'), autoVer: $('autoVer'), verInfo: $('verInfo'), verBadge: $('verBadge'),
+  dropZone: $('dropZone'), fileInput: $('fileInput'), skelSelect: $('skelSelect'), fileList: $('fileList'),
+  animSelect: $('animSelect'), skinSelect: $('skinSelect'), playBtn: $('playBtn'), loopChk: $('loopChk'),
+  timeRange: $('timeRange'), timeLabel: $('timeLabel'), speedRange: $('speedRange'), speedVal: $('speedVal'),
+  alphaRange: $('alphaRange'), alphaVal: $('alphaVal'),
+  zoomRange: $('zoomRange'), zoomVal: $('zoomVal'), fitBtn: $('fitBtn'), oneBtn: $('oneBtn'), homeBtn: $('homeBtn'),
+  bgSelect: $('bgSelect'), bgColor: $('bgColor'), gridChk: $('gridChk'), statsChk: $('statsChk'),
+  hideSkin: $('hideSkin'), clipChk: $('clipChk'), cullSel: $('cullSel'), pmaSel: $('pmaSel'), filterSel: $('filterSel'),
+  viewport: $('viewport'), gl: $('glCanvas'), grid: $('gridCanvas'), stats: $('stats'), hud: $('hud'), toast: $('toast'), empty: $('empty'),
+};
+
+/* ---------------- утилиты ---------------- */
+const fmtBytes = b => b >= 1048576 ? (b / 1048576).toFixed(2) + ' MB' : b >= 1024 ? (b / 1024).toFixed(1) + ' KB' : b + ' B';
+const baseName = p => String(p).split(/[\\/]/).pop();
+const stem = p => baseName(p).replace(/\.[^.]+$/, '');
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+let toastTimer = 0;
+function toast(msg, kind = '', ms = 4500) {
+  el.toast.textContent = msg; el.toast.className = kind; el.toast.style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.toast.style.display = 'none', ms);
+}
+
+/* ---------------- состояние ---------------- */
+const FILES = { skeletons: [], atlases: [], images: new Map() };   // images: lowerName -> {file, img, w, h}
+let gl = null, dpr = window.devicePixelRatio || 1;
+let drawCalls = 0;
+const cam = { x: 0, y: 0, zoom: 1 };                               // zoom = world units per device pixel
+const RT = {};                                                     // key -> { S, V, renderer }
+let M = null;                                                      // текущая модель
+let curRT = null;
+const opt = { playing: true, speed: 1, alpha: 1, loop: true, clip: true, cull: 'off', hideSkin: false, grid: true, stats: true, bg: 'checker' };
+
+/* ---------------- загрузка runtime ---------------- */
+let loadQueue = Promise.resolve();
+function loadRuntime(key) {
+  if (RT[key]) return Promise.resolve(RT[key]);
+  const job = loadQueue.then(() => new Promise((resolve, reject) => {
+    if (RT[key]) return resolve(RT[key]);
+    const prev = window.spine;
+    window.spine = undefined;                                      // чтобы 3.x не «домерживался» в чужой namespace
+    const s = document.createElement('script');
+    s.src = RUNTIME_FILE(key);
+    s.onload = () => {
+      const S = window.spine;
+      window.spine = prev;
+      if (!S) return reject(new Error('Runtime ' + key + ' не создал namespace spine'));
+      RT[key] = { S, V: makeAdapter(key, S), renderer: null };
+      resolve(RT[key]);
+    };
+    s.onerror = () => { window.spine = prev; reject(new Error('Не удалось загрузить ' + RUNTIME_FILE(key))); };
+    document.head.appendChild(s);
+  }));
+  loadQueue = job.catch(() => {});
+  return job;
+}
+
+/* Адаптер различий API между версиями */
+function makeAdapter(key, S) {
+  const is43 = key === '4.3';
+  const W = S.webgl || S;                                          // 3.x: spine.webgl.*, 4.x: плоский namespace
+  const V = {
+    key, S, W, is43,
+    drawOrder: sk => is43 ? sk.drawOrder.appliedPose : sk.drawOrder,
+    getAtt: s => is43 ? s.appliedPose.attachment : s.getAttachment(),
+    setAtt: (s, a) => { if (is43) s.appliedPose.attachment = a; else s.attachment = a; },
+    slotAlpha: s => is43 ? s.appliedPose.color.a : s.color.a,
+    resetPose: sk => is43 ? sk.setupPose() : sk.setToSetupPose(),
+    resetSlots: sk => is43 ? sk.setupPoseSlots() : sk.setSlotsToSetupPose(),
+    updateWT: sk => sk.updateWorldTransform(S.Physics ? S.Physics.update : undefined),
+    hasSetTexture: !!(S.TextureAtlasPage && S.TextureAtlasPage.prototype.setTexture),
+    hasBinary: !!S.SkeletonBinary,
+  };
+  return V;
+}
+
+function getRenderer(rt) {
+  if (rt.renderer) return rt.renderer;
+  const r = new rt.V.W.SceneRenderer(el.gl, gl);
+  rt.renderer = r;
+  return r;
+}
+
+/* ---------------- GL ---------------- */
+function initGL() {
+  gl = el.gl.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: true }) ||
+       el.gl.getContext('experimental-webgl', { alpha: true, premultipliedAlpha: true });
+  if (!gl) { toast('WebGL недоступен', 'bad', 20000); return false; }
+  const de = gl.drawElements.bind(gl), da = gl.drawArrays.bind(gl);
+  gl.drawElements = (...a) => { drawCalls++; de(...a); };
+  gl.drawArrays = (...a) => { drawCalls++; da(...a); };
+  return true;
+}
+function resizeCanvas() {
+  dpr = window.devicePixelRatio || 1;
+  const w = Math.max(1, Math.round(el.viewport.clientWidth * dpr)), h = Math.max(1, Math.round(el.viewport.clientHeight * dpr));
+  for (const c of [el.gl, el.grid]) { if (c.width !== w) c.width = w; if (c.height !== h) c.height = h; }
+  if (gl) gl.viewport(0, 0, w, h);
+}
+new ResizeObserver(resizeCanvas).observe(el.viewport);
+
+/* ---------------- версии ---------------- */
+function parseVer(str) {
+  const m = /(\d+)\.(\d+)(?:\.(\d+))?/.exec(str || '');
+  return m ? { major: +m[1], minor: +m[2], full: m[0], raw: str } : null;
+}
+function pickRuntime(dataVer) {
+  if (!dataVer) return { key: null, exact: false };
+  const k = dataVer.major + '.' + dataVer.minor;
+  if (VERSIONS.includes(k)) return { key: k, exact: true };
+  if (dataVer.major === 3) return { key: dataVer.minor < 7 ? '3.7' : '3.8', exact: false };
+  if (dataVer.major >= 4) return { key: dataVer.minor > 3 ? '4.3' : '4.0', exact: false };
+  return { key: null, exact: false };
+}
+function detectDataVersion(sk) {
+  if (sk.kind === 'json') return parseVer(sk.json && sk.json.skeleton && sk.json.skeleton.spine);
+  const head = new TextDecoder('latin1').decode(new Uint8Array(sk.buf, 0, Math.min(96, sk.buf.byteLength)));
+  const m = /([34]\.\d+\.\d+[\w.-]*)/.exec(head);
+  return m ? parseVer(m[1]) : null;
+}
+for (const v of VERSIONS) { const o = document.createElement('option'); o.value = v; o.textContent = 'Spine ' + v; el.verSelect.appendChild(o); }
+el.verSelect.value = lsGet('suv.ver', '4.2');
+el.autoVer.checked = lsGet('suv.auto', '1') === '1';
+el.verBadge.textContent = el.verSelect.value;
+
+function updateVerInfo() {
+  const sk = currentSkeletonEntry();
+  if (!sk) { el.verInfo.className = ''; el.verInfo.textContent = 'Версия данных: —'; return; }
+  const dv = sk.dataVer, sel = el.verSelect.value;
+  if (!dv) { el.verInfo.className = 'warn'; el.verInfo.textContent = 'Версия данных не определена. Runtime: ' + sel; return; }
+  const match = dv.major + '.' + dv.minor === sel;
+  el.verInfo.className = match ? 'ok' : 'bad';
+  el.verInfo.textContent = `Версия данных: ${dv.raw}` + (match ? ` → совпадает с runtime ${sel}` : ` → НЕ совпадает с runtime ${sel} (возможны ошибки)`);
+}
+
+/* ---------------- файлы ---------------- */
+async function ingest(list) {
+  const files = [...list];
+  if (!files.length) return;
+  const hasSkel = files.some(f => /\.(json|skel|bin)$/i.test(f.name));
+  if (hasSkel) { FILES.skeletons = []; FILES.atlases = []; FILES.images.clear(); }
+  for (const f of files) {
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    try {
+      if (ext === 'json') {
+        const text = await f.text(); const json = JSON.parse(text);
+        if (json && (json.bones || json.skeleton)) FILES.skeletons.push({ name: f.name, size: f.size, kind: 'json', json });
+      } else if (ext === 'skel' || ext === 'bin') {
+        FILES.skeletons.push({ name: f.name, size: f.size, kind: 'skel', buf: await f.arrayBuffer() });
+      } else if (ext === 'atlas' || ext === 'txt') {
+        FILES.atlases = FILES.atlases.filter(a => a.name !== f.name);
+        FILES.atlases.push({ name: f.name, size: f.size, text: await f.text() });
+      } else if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
+        const url = URL.createObjectURL(f); const img = new Image(); img.src = url;
+        await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error('Не удалось декодировать ' + f.name)); });
+        FILES.images.set(f.name.toLowerCase(), { name: f.name, size: f.size, img, w: img.naturalWidth, h: img.naturalHeight });
+      }
+    } catch (e) { console.error(e); toast(`${f.name}: ${e.message}`, 'bad'); }
+  }
+  for (const s of FILES.skeletons) s.dataVer = detectDataVersion(s);
+  if (FILES.skeletons.length && (!FILES.atlases.length || !FILES.images.size)) await fetchCompanions(FILES.skeletons[0].name);
+  refreshFileUI();
+  if (FILES.skeletons.length) await loadModel();
+  else toast('Нужен файл скелета (.json или .skel)', 'warn');
+}
+function currentSkeletonEntry() { return FILES.skeletons[+el.skelSelect.value || 0] || null; }
+function refreshFileUI() {
+  el.skelSelect.innerHTML = '';
+  FILES.skeletons.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = 'Скелет: ' + s.name; el.skelSelect.appendChild(o); });
+  el.skelSelect.style.display = FILES.skeletons.length > 1 ? '' : 'none';
+  const rows = [];
+  for (const s of FILES.skeletons) rows.push(`<div class="f"><span>${esc(s.name)}</span><span>${fmtBytes(s.size)}${s.dataVer ? ' · v' + s.dataVer.full : ''}</span></div>`);
+  for (const a of FILES.atlases) rows.push(`<div class="f"><span>${esc(a.name)}</span><span>${fmtBytes(a.size)}</span></div>`);
+  for (const i of FILES.images.values()) rows.push(`<div class="f"><span>${esc(i.name)}</span><span>${i.w}×${i.h} · ${fmtBytes(i.size)}</span></div>`);
+  el.fileList.innerHTML = rows.join('');
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ---------- файлы из папки плеера (через app.py /__list) ---------- */
+let SERVER_FILES = [];
+const dirOf = p => p.includes('/') ? p.slice(0, p.lastIndexOf('/') + 1) : '';
+const atlasStem = p => stem(p).replace(/\.atlas$/i, '').toLowerCase();
+async function fetchAsFile(path) {
+  const r = await fetch(path.split('/').map(encodeURIComponent).join('/'), { cache: 'no-store' });
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + path);
+  return new File([await r.blob()], baseName(path));
+}
+async function companionFiles(skelPath) {
+  const dir = dirOf(skelPath), st = stem(skelPath).toLowerCase();
+  const all = SERVER_FILES.filter(p => /\.atlas(\.txt)?$/i.test(p));
+  const atlas = all.find(p => dirOf(p) === dir && atlasStem(p) === st) || all.find(p => dirOf(p) === dir)
+             || all.find(p => atlasStem(p) === st) || (all.length === 1 ? all[0] : null);
+  if (!atlas) return [];
+  const ad = dirOf(atlas);
+  const imgs = SERVER_FILES.filter(p => dirOf(p) === ad && /\.(png|jpe?g|webp)$/i.test(p));
+  return [atlas, ...imgs];
+}
+/* дропнули только скелет — пробуем добрать .atlas/.png из папки плеера */
+async function fetchCompanions(skelName) {
+  if (!SERVER_FILES.length) return;
+  const sp = SERVER_FILES.find(p => baseName(p).toLowerCase() === skelName.toLowerCase()) || skelName;
+  for (const p of await companionFiles(sp)) {
+    try {
+      const f = await fetchAsFile(p), ext = p.split('.').pop().toLowerCase();
+      if (/atlas|txt/.test(ext) && !FILES.atlases.length) FILES.atlases.push({ name: f.name, size: f.size, text: await f.text() });
+      else if (/png|jpe?g|webp/.test(ext) && !FILES.images.has(f.name.toLowerCase())) {
+        const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
+        FILES.images.set(f.name.toLowerCase(), { name: f.name, size: f.size, img, w: img.naturalWidth, h: img.naturalHeight });
+      }
+    } catch (e) { console.warn(e); }
+  }
+}
+async function openServerSkeleton(path) {
+  try {
+    const files = [await fetchAsFile(path)];
+    for (const p of await companionFiles(path)) files.push(await fetchAsFile(p));
+    await ingest(files);
+  } catch (e) { console.error(e); toast(e.message, 'bad'); }
+}
+async function scanFolder() {
+  try { const r = await fetch('__list', { cache: 'no-store' }); if (!r.ok) return; SERVER_FILES = await r.json(); } catch (e) { return; }
+  const sk = SERVER_FILES.filter(p => /\.(json|skel)$/i.test(p));
+  const sel = $('projSelect');
+  if (!sk.length) return;
+  sel.innerHTML = '<option value="">📁 Проекты в папке плеера…</option>' + sk.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  sel.style.display = '';
+  sel.onchange = () => { if (sel.value) openServerSkeleton(sel.value); };
+  if (!FILES.skeletons.length) { sel.value = sk[0]; openServerSkeleton(sk[0]); }
+}
+
+/* drag & drop */
+el.dropZone.addEventListener('click', () => el.fileInput.click());
+el.fileInput.addEventListener('change', e => { ingest(e.target.files); e.target.value = ''; });
+let dragDepth = 0;
+window.addEventListener('dragenter', e => { e.preventDefault(); dragDepth++; document.body.classList.add('dragging'); });
+window.addEventListener('dragleave', e => { e.preventDefault(); if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragging'); } });
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; document.body.classList.remove('dragging'); ingest(e.dataTransfer.files); });
+
+/* ---------------- построение модели ---------------- */
+async function loadModel(keep) {
+  const sk = currentSkeletonEntry();
+  if (!sk) return;
+  // выбор версии
+  let key = el.verSelect.value;
+  if (el.autoVer.checked) {
+    const p = pickRuntime(sk.dataVer);
+    if (p.key) { key = p.key; if (el.verSelect.value !== key) { el.verSelect.value = key; } if (!p.exact) toast(`Версии ${sk.dataVer.full} нет — использую ближайший runtime ${key}`, 'warn'); }
+  }
+  lsSet('suv.ver', key);
+  el.verBadge.textContent = key;
+  updateVerInfo();
+
+  let rt;
+  try { rt = await loadRuntime(key); } catch (e) { console.error(e); toast(e.message, 'bad', 9000); return; }
+  if (sk.kind === 'skel' && !rt.V.hasBinary) { disposeModel(); el.empty.style.display = ''; toast(`Runtime ${key} не умеет читать бинарный .skel — экспортируйте JSON`, 'bad', 9000); return; }
+
+  try {
+    disposeModel();
+    curRT = rt;
+    const { S, V, V: { W } } = rt;
+    const r = getRenderer(rt);
+    applyDebugOpts(r);
+
+    // --- атлас ---
+    const atlasEntry = FILES.atlases.find(a => stem(a.name).toLowerCase() === stem(sk.name).toLowerCase()) || FILES.atlases[0];
+    if (!atlasEntry) throw new Error('Не найден .atlas — перетащите .json/.skel вместе с .atlas и .png (или положите их в папку плеера)');
+    const textures = [];                                           // для статистики
+    const buildTex = (pageName, page) => {
+      const lower = baseName(pageName).toLowerCase();
+      let rec = FILES.images.get(lower);
+      if (!rec && FILES.images.size === 1) rec = [...FILES.images.values()][0];
+      if (!rec) throw new Error('В файлах нет текстуры: ' + pageName);
+      const mode = el.pmaSel.value;
+      const pma = mode === 'pma' ? true : mode === 'straight' ? false : ((page && page.pma === true) || /pma/i.test(rec.name));
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, !pma);     // в 4.3 GLTexture сам делает то же
+      const tex = V.is43 ? new W.GLTexture(gl, rec.img, pma) : new W.GLTexture(gl, rec.img, false);
+      const f = el.filterSel.value === 'nearest' ? S.TextureFilter.Nearest : S.TextureFilter.Linear;
+      tex.setFilters(f, f);
+      tex.setWraps(S.TextureWrap.ClampToEdge, S.TextureWrap.ClampToEdge);
+      textures.push({ tex, rec, pma });
+      return tex;
+    };
+    const atlas = new S.TextureAtlas(atlasEntry.text, V.hasSetTexture ? () => null : (path) => buildTex(path, null));
+    if (V.hasSetTexture) for (const page of atlas.pages) page.setTexture(buildTex(page.name, page));
+
+    // --- скелет ---
+    // Регионы, упакованные с индексами (Smoke_1 -> "Smoke" index:1), и отсутствующие картинки не роняют загрузку
+    const origFind = atlas.findRegion.bind(atlas);
+    atlas.findRegion = name => {
+      const r = origFind(name); if (r) return r;
+      const m = /^(.*?)_?(\d+)$/.exec(name || '');
+      return m ? atlas.regions.find(rg => rg.name === m[1] && rg.index === +m[2]) || null : null;
+    };
+    const missing = [];
+    const baseLoader = new S.AtlasAttachmentLoader(atlas);
+    const loader = new Proxy(baseLoader, { get(t, k) {
+      const v = t[k];
+      if (typeof v !== 'function') return v;
+      return (...a) => { try { return v.apply(t, a); } catch (e) {
+        if (/not found/i.test(e.message)) { missing.push(a[2] || a[1]); return null; } throw e; } };
+    } });
+    let data;
+    if (sk.kind === 'json') { const j = new S.SkeletonJson(loader); j.scale = 1; data = j.readSkeletonData(sk.json); }
+    else { const b = new S.SkeletonBinary(loader); b.scale = 1; data = b.readSkeletonData(new Uint8Array(sk.buf)); }
+
+    const skeleton = new S.Skeleton(data);
+    const stateData = new S.AnimationStateData(data);
+    const state = new S.AnimationState(stateData);
+
+    M = { key, rt, data, skeleton, state, entry: null, atlas, textures, sk, atlasEntry, bounds: null, anim: '' };
+    M.totals = countTotals(data, S);
+
+    // UI: анимации
+    el.animSelect.innerHTML = '<option value="">— Setup pose —</option>';
+    data.animations.forEach(a => { const o = document.createElement('option'); o.value = a.name; o.textContent = `${a.name}  (${a.duration.toFixed(2)}s)`; el.animSelect.appendChild(o); });
+    el.animSelect.disabled = false;
+    el.skinSelect.innerHTML = '';
+    data.skins.forEach(s => { const o = document.createElement('option'); o.value = s.name; o.textContent = s.name; el.skinSelect.appendChild(o); });
+    el.skinSelect.disabled = false; el.alphaRange.disabled = false; el.playBtn.disabled = false;
+
+    const wantSkin = keep && keep.skin && data.skins.some(s => s.name === keep.skin) ? keep.skin : (data.skins.find(s => s.name !== 'default') || data.skins[0] || {}).name;
+    if (wantSkin) { el.skinSelect.value = wantSkin; applySkin(wantSkin); }
+    const defAnim = (data.animations.find(a => /^idle/i.test(a.name) && a.duration > 0) || data.animations.find(a => a.duration > 0) || data.animations[0] || {}).name || '';
+    const wantAnim = keep && keep.anim !== undefined && (keep.anim === '' || data.animations.some(a => a.name === keep.anim)) ? keep.anim : defAnim;
+    el.animSelect.value = wantAnim;
+    setAnimation(wantAnim);
+    if (keep && keep.time && M.entry) M.entry.trackTime = keep.time;
+    if (!keep) fitView(); else if (keep.cam) Object.assign(cam, keep.cam);
+    el.empty.style.display = 'none';
+    updateVerInfo();
+    if (missing.length) toast(`В атласе нет регионов (пропущены): ${[...new Set(missing)].join(', ')}`, 'warn', 9000);
+  } catch (e) {
+    console.error(e);
+    M = null;
+    const dv = sk.dataVer, mism = dv && (dv.major + '.' + dv.minor) !== key;
+    toast(`Ошибка (runtime ${key}): ${e.message || e}` + (mism ? ` — данные версии ${dv.full} не совместимы с runtime ${key}, выберите ${pickRuntime(dv).key || 'другую'} версию` : ''), 'bad', 12000);
+    el.empty.style.display = '';
+  }
+}
+function disposeModel() {
+  if (M) { for (const t of M.textures) { try { t.tex.dispose(); } catch (e) {} } }
+  M = null;
+}
+function countTotals(data, S) {
+  let verts = 0, tris = 0, meshes = 0, regions = 0, clips = 0, seen = new Set();
+  const visit = a => {
+    if (!a || seen.has(a)) return; seen.add(a);
+    if (a instanceof S.MeshAttachment) { meshes++; verts += a.regionUVs.length / 2; tris += a.triangles.length / 3; }
+    else if (a instanceof S.RegionAttachment) { regions++; verts += 4; tris += 2; }
+    else if (a instanceof S.ClippingAttachment) clips++;
+  };
+  for (const skin of data.skins) {
+    if (skin.getAttachments) { for (const e of skin.getAttachments()) visit(e.attachment); }
+    else if (skin.attachments) { for (const slotMap of skin.attachments) if (slotMap) for (const n in slotMap) visit(slotMap[n]); }
+  }
+  return { verts, tris, meshes, regions, clips };
+}
+
+/* ---------------- анимации / скины ---------------- */
+function applySkin(name) {
+  if (!M) return;
+  M.skeleton.setSkinByName(name);
+  M.rt.V.resetSlots(M.skeleton);
+}
+function setAnimation(name) {
+  if (!M) return;
+  const { V } = M.rt;
+  V.resetPose(M.skeleton);
+  M.anim = name;
+  M.state.clearTracks();
+  if (name) {
+    M.entry = M.state.setAnimation(0, name, opt.loop);
+    M.entry.alpha = opt.alpha;
+    el.timeRange.max = Math.max(M.entry.animation.duration, 0.001);
+    el.timeRange.disabled = false;
+  } else { M.entry = null; el.timeRange.disabled = true; el.timeRange.value = 0; }
+  M.bounds = computeBounds(M);
+  V.updateWT(M.skeleton);
+}
+/* границы анимации — сэмплируем отдельным скелетом, чтобы Fit учитывал всю анимацию */
+function computeBounds(m) {
+  const { S, V } = m.rt;
+  try {
+    const sk = new S.Skeleton(m.data), sd = new S.AnimationStateData(m.data), st = new S.AnimationState(sd);
+    const sname = m.skeleton.skin ? m.skeleton.skin.name : null;
+    if (sname) { sk.setSkinByName(sname); V.resetSlots(sk); }
+    let minX = 1e18, minY = 1e18, maxX = -1e18, maxY = -1e18;
+    const off = new S.Vector2(), size = new S.Vector2();
+    const sample = () => {
+      V.updateWT(sk); sk.getBounds(off, size, []);
+      if (isFinite(off.x) && isFinite(size.x) && size.x > 0 && size.y > 0) {
+        minX = Math.min(minX, off.x); minY = Math.min(minY, off.y); maxX = Math.max(maxX, off.x + size.x); maxY = Math.max(maxY, off.y + size.y);
+      }
+    };
+    V.resetPose(sk);
+    if (m.anim) {
+      const dur = m.entry.animation.duration, n = 24;
+      st.setAnimation(0, m.anim, true);
+      for (let i = 0; i <= n; i++) { st.update(i === 0 ? 0 : dur / n); st.apply(sk); sample(); }
+    } else sample();
+    if (maxX > minX) return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  } catch (e) { console.warn('bounds', e); }
+  return { x: -100, y: -100, w: 200, h: 200 };
+}
+
+el.animSelect.addEventListener('change', e => setAnimation(e.target.value));
+el.skinSelect.addEventListener('change', e => { applySkin(e.target.value); if (M) M.bounds = computeBounds(M); });
+el.skelSelect.addEventListener('change', () => { updateVerInfo(); loadModel(); });
+el.loopChk.addEventListener('change', e => { opt.loop = e.target.checked; if (M && M.entry) M.entry.loop = opt.loop; });
+el.playBtn.addEventListener('click', togglePlay);
+function togglePlay() { opt.playing = !opt.playing; el.playBtn.textContent = opt.playing ? '⏸' : '▶'; }
+el.speedRange.addEventListener('input', e => { opt.speed = +e.target.value; el.speedVal.textContent = opt.speed.toFixed(2) + '×'; });
+el.alphaRange.addEventListener('input', e => { opt.alpha = +e.target.value; el.alphaVal.textContent = opt.alpha.toFixed(2); if (M && M.entry) M.entry.alpha = opt.alpha; });
+let scrubbing = false;
+el.timeRange.addEventListener('pointerdown', () => scrubbing = true);
+window.addEventListener('pointerup', () => scrubbing = false);
+el.timeRange.addEventListener('input', e => { if (M && M.entry) M.entry.trackTime = +e.target.value; });
+
+/* версия вручную */
+el.verSelect.addEventListener('change', () => {
+  el.autoVer.checked = false; lsSet('suv.auto', '0'); lsSet('suv.ver', el.verSelect.value);
+  switchRuntime();
+});
+el.autoVer.addEventListener('change', () => { lsSet('suv.auto', el.autoVer.checked ? '1' : '0'); switchRuntime(); });
+function switchRuntime() {
+  el.verBadge.textContent = el.verSelect.value; updateVerInfo();
+  if (!FILES.skeletons.length) return;
+  const keep = M ? { anim: M.anim, skin: M.skeleton.skin && M.skeleton.skin.name, time: M.entry ? M.entry.trackTime : 0, cam: { ...cam } } : null;
+  loadModel(keep);
+}
+/* смена текстурных настроек — пересборка */
+el.pmaSel.addEventListener('change', switchRuntime);
+el.filterSel.addEventListener('change', switchRuntime);
+
+/* ---------------- вид / камера ---------------- */
+function fitView() {
+  const W = el.gl.width, H = el.gl.height;
+  if (!M || !M.bounds) { cam.x = 0; cam.y = 0; cam.zoom = 1 / dpr; return; }
+  const b = M.bounds;
+  cam.x = b.x + b.w / 2; cam.y = b.y + b.h / 2;
+  cam.zoom = Math.max(b.w / (W * 0.8), b.h / (H * 0.8));
+  if (!isFinite(cam.zoom) || cam.zoom <= 0) cam.zoom = 1 / dpr;
+  clampZoom();
+}
+const clampZoom = () => { cam.zoom = Math.min(Math.max(cam.zoom, 0.01 / dpr), 60 / dpr); };
+function zoomAt(factor, mx, my) {                                   // mx,my в device px относительно canvas
+  const W = el.gl.width, H = el.gl.height;
+  const wx = cam.x + (mx - W / 2) * cam.zoom, wy = cam.y - (my - H / 2) * cam.zoom;
+  cam.zoom *= factor; clampZoom();
+  cam.x = wx - (mx - W / 2) * cam.zoom; cam.y = wy + (my - H / 2) * cam.zoom;
+}
+el.fitBtn.onclick = fitView;
+el.oneBtn.onclick = () => { cam.zoom = 1 / dpr; };
+el.homeBtn.onclick = () => { cam.x = 0; cam.y = 0; cam.zoom = 1 / dpr; };
+el.zoomRange.addEventListener('input', e => zoomAt((1 / (Math.pow(10, +e.target.value) * dpr)) / cam.zoom, el.gl.width / 2, el.gl.height / 2));
+
+let drag = null;
+el.gl.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; el.gl.setPointerCapture(e.pointerId); el.gl.classList.add('panning'); });
+el.gl.addEventListener('pointermove', e => {
+  const rect = el.gl.getBoundingClientRect(), mx = (e.clientX - rect.left) * dpr, my = (e.clientY - rect.top) * dpr;
+  cursorWorld = { x: cam.x + (mx - el.gl.width / 2) * cam.zoom, y: cam.y - (my - el.gl.height / 2) * cam.zoom };
+  if (!drag) return;
+  cam.x -= (e.clientX - drag.x) * dpr * cam.zoom; cam.y += (e.clientY - drag.y) * dpr * cam.zoom;
+  drag.x = e.clientX; drag.y = e.clientY;
+});
+const endDrag = () => { drag = null; el.gl.classList.remove('panning'); };
+el.gl.addEventListener('pointerup', endDrag); el.gl.addEventListener('pointercancel', endDrag);
+el.gl.addEventListener('contextmenu', e => e.preventDefault());
+el.gl.addEventListener('dblclick', fitView);
+el.gl.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = el.gl.getBoundingClientRect();
+  const k = Math.pow(1.0015, -e.deltaY * (e.deltaMode === 1 ? 33 : 1));
+  zoomAt(1 / k, (e.clientX - rect.left) * dpr, (e.clientY - rect.top) * dpr);
+}, { passive: false });
+let cursorWorld = null;
+
+/* фон */
+function applyBg() {
+  const v = el.bgSelect.value;
+  el.bgColor.style.display = v === 'custom' ? '' : 'none';
+  if (v === 'checker') { el.viewport.classList.add('checker'); el.viewport.style.backgroundColor = ''; }
+  else { el.viewport.classList.remove('checker'); el.viewport.style.background = v === 'custom' ? el.bgColor.value : v; }
+}
+el.bgSelect.addEventListener('change', applyBg); el.bgColor.addEventListener('input', applyBg);
+el.gridChk.addEventListener('change', () => opt.grid = el.gridChk.checked);
+el.statsChk.addEventListener('change', () => { opt.stats = el.statsChk.checked; el.stats.style.display = opt.stats ? '' : 'none'; });
+
+/* debug / render опции */
+const dbgBoxes = [...document.querySelectorAll('[data-dbg]')];
+function applyDebugOpts(r) {
+  const d = (r || (curRT && curRT.renderer) || {}).skeletonDebugRenderer;
+  if (!d) return;
+  for (const c of dbgBoxes) d[c.dataset.dbg] = c.checked;
+}
+function anyDebug() { return dbgBoxes.some(c => c.checked); }
+dbgBoxes.forEach(c => c.addEventListener('change', () => { applyDebugOpts(); lsSet('suv.dbg.' + c.dataset.dbg, c.checked ? '1' : '0'); }));
+dbgBoxes.forEach(c => { c.checked = lsGet('suv.dbg.' + c.dataset.dbg, '0') === '1'; });
+el.hideSkin.addEventListener('change', () => opt.hideSkin = el.hideSkin.checked);
+el.clipChk.addEventListener('change', () => opt.clip = el.clipChk.checked);
+el.cullSel.addEventListener('change', () => opt.cull = el.cullSel.value);
+
+window.addEventListener('keydown', e => {
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) && e.target.type !== 'checkbox' && e.target.type !== 'range') return;
+  const toggle = (c) => { c.checked = !c.checked; c.dispatchEvent(new Event('change')); };
+  switch (e.key.toLowerCase()) {
+    case ' ': if (e.target.tagName !== 'BUTTON') { e.preventDefault(); togglePlay(); } break;
+    case 'f': fitView(); break;
+    case 'b': toggle(dbgBoxes.find(c => c.dataset.dbg === 'drawBones')); break;
+    case 'm': toggle($('dbgMesh')); break;
+    case 'c': toggle(el.clipChk); break;
+    case 'h': toggle(el.hideSkin); break;
+    case 'g': toggle(el.gridChk); break;
+    case 's': toggle(el.statsChk); break;
+  }
+});
+
+/* ---------------- сетка / оси ---------------- */
+function drawGrid() {
+  const c = el.grid, ctx = c.getContext('2d'), W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  if (!opt.grid) return;
+  const light = el.bgSelect.value === '#e8e8ee' || el.bgSelect.value === '#8a8a95';
+  const scale = 1 / cam.zoom;                                       // device px per unit
+  const want = 80 * dpr / scale, pow = Math.pow(10, Math.floor(Math.log10(want)));
+  const step = [1, 2, 5, 10].map(m => m * pow).find(s => s >= want) || pow * 10;
+  const x0 = cam.x - W / 2 * cam.zoom, x1 = cam.x + W / 2 * cam.zoom, y0 = cam.y - H / 2 * cam.zoom, y1 = cam.y + H / 2 * cam.zoom;
+  const sx = x => (x - cam.x) * scale + W / 2, sy = y => H / 2 - (y - cam.y) * scale;
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = light ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.07)';
+  ctx.beginPath();
+  for (let x = Math.ceil(x0 / step) * step; x <= x1; x += step) { const px = Math.round(sx(x)) + .5; ctx.moveTo(px, 0); ctx.lineTo(px, H); }
+  for (let y = Math.ceil(y0 / step) * step; y <= y1; y += step) { const py = Math.round(sy(y)) + .5; ctx.moveTo(0, py); ctx.lineTo(W, py); }
+  ctx.stroke();
+  ctx.lineWidth = 1.5 * dpr;
+  ctx.strokeStyle = 'rgba(239,68,68,.55)'; ctx.beginPath(); ctx.moveTo(0, sy(0)); ctx.lineTo(W, sy(0)); ctx.stroke();
+  ctx.strokeStyle = 'rgba(52,211,153,.55)'; ctx.beginPath(); ctx.moveTo(sx(0), 0); ctx.lineTo(sx(0), H); ctx.stroke();
+  ctx.fillStyle = light ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.4)'; ctx.font = `${11 * dpr}px Consolas, monospace`;
+  ctx.fillText('grid ' + +step.toPrecision(2) + ' u', 8 * dpr, H - 8 * dpr);
+}
+
+/* ---------------- рендер ---------------- */
+let lastT = performance.now(), fpsFrames = 0, fpsAcc = 0, fps = 0, frameMs = 0, updateMs = 0, lastStats = 0;
+const S_ = { dc: 0, dcDebug: 0, verts: 0, tris: 0, meshes: 0, regions: 0, clips: 0, hidden: 0 };
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min((now - lastT) / 1000, 0.1); lastT = now;
+  fpsFrames++; fpsAcc += dt * 1000;
+  if (fpsAcc >= 500) { fps = fpsFrames * 1000 / fpsAcc; frameMs = fpsAcc / fpsFrames; fpsFrames = 0; fpsAcc = 0; }
+
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+  drawGrid();
+  S_.dc = S_.dcDebug = S_.verts = S_.tris = S_.meshes = S_.regions = S_.clips = 0;
+
+  if (M) {
+    const { S, V } = M.rt, r = M.rt.renderer, sk = M.skeleton, state = M.state;
+    const t0 = performance.now();
+    const step = opt.playing ? dt * opt.speed : 0;
+    if (opt.alpha < 1 || !M.entry) V.resetPose(sk);
+    state.update(step); state.apply(sk);
+    if (sk.update) sk.update(step);
+    V.updateWT(sk);
+    updateMs = performance.now() - t0;
+
+    if (M.entry && !scrubbing) {
+      const t = M.entry.getAnimationTime(), dur = M.entry.animation.duration;
+      el.timeRange.value = t; el.timeLabel.textContent = `${t.toFixed(2)} / ${dur.toFixed(2)}`;
+    } else if (M.entry) { el.timeLabel.textContent = `${(+el.timeRange.value).toFixed(2)} / ${M.entry.animation.duration.toFixed(2)}`; }
+    else el.timeLabel.textContent = 'setup pose';
+
+    // статистика по видимым вложениям + скрытие clipping при необходимости
+    const order = V.drawOrder(sk), hidden = [];
+    for (let i = 0; i < order.length; i++) {
+      const slot = order[i], a = V.getAtt(slot);
+      if (!a) continue;
+      if (slot.bone && slot.bone.active === false) continue;
+      if (a instanceof S.ClippingAttachment) {
+        S_.clips++;
+        if (!opt.clip) { hidden.push(slot, a); V.setAtt(slot, null); }
+        continue;
+      }
+      if (V.slotAlpha(slot) <= 0) continue;
+      if (a instanceof S.MeshAttachment) { S_.meshes++; S_.verts += a.regionUVs.length / 2; S_.tris += a.triangles.length / 3; }
+      else if (a instanceof S.RegionAttachment) { S_.regions++; S_.verts += 4; S_.tris += 2; }
+    }
+
+    const W = el.gl.width, H = el.gl.height;
+    r.camera.position.x = cam.x; r.camera.position.y = cam.y; r.camera.zoom = cam.zoom;
+    r.camera.setViewport(W, H);
+
+    if (!opt.hideSkin) {
+      drawCalls = 0;
+      if (opt.cull !== 'off') { gl.enable(gl.CULL_FACE); gl.frontFace(gl.CW); gl.cullFace(opt.cull === 'front' ? gl.BACK : gl.FRONT); }
+      r.begin();
+      if (V.is43) r.drawSkeleton(sk); else r.drawSkeleton(sk, true);
+      r.end();
+      gl.disable(gl.CULL_FACE);
+      S_.dc = drawCalls;
+    }
+    for (let i = 0; i < hidden.length; i += 2) V.setAtt(hidden[i], hidden[i + 1]);
+
+    if (anyDebug()) {
+      drawCalls = 0;
+      const d = r.skeletonDebugRenderer; d.scale = cam.zoom * Math.max(1, dpr);
+      r.begin();
+      if (V.is43) r.drawSkeletonDebug(sk); else r.drawSkeletonDebug(sk, true);
+      r.end();
+      S_.dcDebug = drawCalls;
+    }
+  }
+  if (now - lastStats > 250) { lastStats = now; updateStats(); }
+}
+
+/* ---------------- панели ---------------- */
+function updateStats() {
+  const pct = 100 / (cam.zoom * dpr);
+  el.zoomVal.textContent = pct.toFixed(pct < 10 ? 1 : 0) + '%';
+  if (document.activeElement !== el.zoomRange) el.zoomRange.value = Math.log10(1 / (cam.zoom * dpr));
+  el.hud.textContent = cursorWorld ? `x ${cursorWorld.x.toFixed(1)}  y ${cursorWorld.y.toFixed(1)}  ·  zoom ${pct.toFixed(0)}%` : `zoom ${pct.toFixed(0)}%`;
+  if (!opt.stats) return;
+  const cls = (v, good, mid) => v >= good ? 'ok' : v >= mid ? 'warn' : 'bad';
+  const heap = performance.memory ? performance.memory.usedJSHeapSize : null;
+  let h = `<span class="h">FPS / Perf</span>\n`;
+  h += `<span class="k">FPS         </span><span class="${cls(fps, 55, 30)}">${fps.toFixed(0)}</span>  (${frameMs.toFixed(1)} ms)\n`;
+  h += `<span class="k">Draw calls  </span>${S_.dc}${S_.dcDebug ? ` <span class="k">(+${S_.dcDebug} debug)</span>` : ''}\n`;
+  h += `<span class="k">Update      </span>${updateMs.toFixed(2)} ms\n`;
+  h += `<span class="k">RAM (JS)    </span>${heap === null ? 'N/A' : fmtBytes(heap)}\n`;
+  if (M) {
+    const vram = M.textures.reduce((s, t) => s + t.rec.w * t.rec.h * 4, 0);
+    const disk = M.textures.reduce((s, t) => s + t.rec.size, 0);
+    const T = M.totals;
+    h += `<span class="k">VRAM (est.) </span>${fmtBytes(vram)}\n`;
+    h += `\n<span class="h">Геометрия</span>\n`;
+    h += `<span class="k">Vertices    </span>${S_.verts}  <span class="k">/ ${T.verts} всего</span>\n`;
+    h += `<span class="k">Triangles   </span>${S_.tris}  <span class="k">/ ${T.tris} всего</span>\n`;
+    h += `<span class="k">Meshes      </span>${S_.meshes}  <span class="k">/ ${T.meshes}</span>\n`;
+    h += `<span class="k">Regions     </span>${S_.regions}  <span class="k">/ ${T.regions}</span>\n`;
+    h += `<span class="k">Clipping    </span>${S_.clips ? `<span class="warn">${S_.clips}${opt.clip ? '' : ' (выкл)'}</span>` : '0'}\n`;
+    h += `<span class="k">Bones/Slots </span>${M.skeleton.bones.length} / ${M.skeleton.slots.length}\n`;
+    h += `\n<span class="h">Вес файлов</span>\n`;
+    h += `<span class="k">${M.sk.kind === 'json' ? 'JSON        ' : 'SKEL        '}</span>${fmtBytes(M.sk.size)}\n`;
+    h += `<span class="k">Atlas       </span>${fmtBytes(M.atlasEntry.size)}\n`;
+    h += `<span class="k">Графика     </span>${fmtBytes(disk)}  <span class="k">(${M.textures.length} шт.)</span>\n`;
+    h += `<span class="k">Итого       </span>${fmtBytes(M.sk.size + M.atlasEntry.size + disk)}\n`;
+    h += `\n<span class="k">runtime ${M.key} · data ${M.sk.dataVer ? M.sk.dataVer.full : '?'}</span>`;
+  } else h += `\n<span class="k">Модель не загружена</span>`;
+  el.stats.innerHTML = h;
+}
+
+/* ---------------- старт ---------------- */
+applyBg();
+if (initGL()) { resizeCanvas(); requestAnimationFrame(frame); scanFolder(); }
+window.__suv = { get M() { return M; }, cam, opt, FILES, ingest, loadModel, RT, S_ };   // для отладки/тестов
+</script>
+</body>
+</html>
