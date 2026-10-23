@@ -73,37 +73,50 @@
   kbd { background: #33333d; border: 1px solid #4a4a58; border-radius: 3px; padding: 0 4px; font-size: 11px; }
   /* ---------- NLA ---------- */
   #rightCol { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  #nla { flex: none; height: 270px; background: var(--panel); border-top: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
-  #nla.collapsed { height: 38px; }
+  #nlaSplit { flex: none; height: 6px; cursor: ns-resize; background: var(--line); position: relative; }
+  #nlaSplit:hover, #nlaSplit.drag { background: var(--accent); }
+  #nlaSplit::after { content: ''; position: absolute; left: 50%; top: 2px; width: 40px; height: 2px; margin-left: -20px; background: rgba(255,255,255,.35); border-radius: 1px; }
+  #nla { flex: none; height: 300px; min-height: 38px; background: var(--panel); display: flex; flex-direction: column; }
+  #nla.collapsed { height: 38px !important; }
   #nla.collapsed .nla-body { display: none; }
-  #nlaBar { height: 38px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 10px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow-x: auto; }
-  #nlaBar button, #nlaBar select, #nlaBar input[type=number] { padding: 3px 8px; font-size: 12px; }
-  #nlaBar .sep { width: 1px; height: 20px; background: var(--line); }
+  #nlaBar { height: 38px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 10px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow-x: auto; overflow-y: hidden; }
+  #nlaBar button { padding: 3px 9px; font-size: 12px; }
+  #nlaBar .sep { width: 1px; height: 20px; background: var(--line); flex: none; }
   #nlaBar .ttl { font-weight: 700; color: #fff; letter-spacing: .03em; }
-  #nlaTime { font-family: Consolas, monospace; color: var(--dim); min-width: 120px; }
-  input[type=number] { background: #2a2a34; border: 1px solid var(--line); color: var(--text); border-radius: 5px; padding: 4px 6px; font: inherit; width: 64px; }
+  #nlaTime { font-family: Consolas, monospace; color: var(--text); min-width: 118px; }
   .nla-body { flex: 1; display: flex; min-height: 0; }
-  #nlaLeft { flex: 1; display: flex; min-width: 0; overflow-y: auto; overflow-x: hidden; }
-  #nlaHeads { width: 214px; flex: none; border-right: 1px solid var(--line); background: #202027; }
-  #nlaHeads .ruler { height: 24px; border-bottom: 1px solid var(--line); font-size: 11px; color: var(--dim); display: flex; align-items: center; padding: 0 8px; }
-  .trk { height: 48px; border-bottom: 1px solid #2c2c36; padding: 4px 6px; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
-  .trk.sel { background: #262636; }
-  .trk .r1, .trk .r2 { display: flex; align-items: center; gap: 5px; }
-  .trk .nm { flex: 1; font-weight: 600; font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
-  .trk button { padding: 0 6px; font-size: 11px; line-height: 18px; }
+  #nlaLib { width: 190px; flex: none; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; background: #1d1d23; }
+  #nlaLib .hd { padding: 6px 8px; font-size: 11px; color: var(--dim); text-transform: uppercase; font-weight: 700; border-bottom: 1px solid var(--line); }
+  #nlaLibFilter { margin: 6px 8px; padding: 4px 7px; background: #2a2a34; border: 1px solid var(--line); color: var(--text); border-radius: 5px; font: inherit; font-size: 12px; outline: none; }
+  #nlaLibList { flex: 1; overflow-y: auto; padding: 0 6px 8px; display: flex; flex-direction: column; gap: 3px; }
+  .lib-item { display: flex; align-items: center; gap: 6px; padding: 5px 7px; border-radius: 5px; background: #2a2a34; border: 1px solid #34343f; cursor: grab; user-select: none; font-size: 12px; }
+  .lib-item:hover { border-color: var(--accent2); background: #30303c; }
+  .lib-item .sw { width: 8px; height: 18px; border-radius: 2px; flex: none; }
+  .lib-item .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lib-item .d { font: 10.5px Consolas, monospace; color: var(--dim); }
+  #nlaLeft { flex: 1; display: flex; min-width: 0; overflow-y: auto; overflow-x: hidden; position: relative; }
+  #nlaHeads { width: 158px; flex: none; border-right: 1px solid var(--line); background: #202027; align-self: flex-start; }
+  #nlaHeads .ruler { height: 26px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 4px; padding: 0 6px; position: sticky; top: 0; background: #1c1c22; z-index: 2; }
+  #nlaHeads .ruler button { padding: 1px 7px; font-size: 11px; }
+  .trk { height: 44px; border-bottom: 1px solid #2c2c36; padding: 3px 6px; display: flex; flex-direction: column; justify-content: center; gap: 3px; cursor: pointer; }
+  .trk.sel { background: #272738; box-shadow: inset 3px 0 0 var(--accent); }
+  .trk .r1, .trk .r2 { display: flex; align-items: center; gap: 4px; }
+  .trk .nm { flex: 1; font-weight: 600; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trk button { padding: 0 5px; font-size: 10.5px; line-height: 17px; }
   .trk button.on { background: #7f1d1d; border-color: #b91c1c; }
-  .trk select { width: auto; padding: 1px 4px; font-size: 11px; }
-  .trk input[type=range] { flex: 1; }
-  .trk .wv { font: 11px Consolas, monospace; color: var(--dim); width: 30px; text-align: right; }
-  #nlaWrap { flex: 1; position: relative; min-width: 0; }
-  #nlaCanvas { position: static; display: block; width: 100%; cursor: default; }
-  #nlaInsp { width: 250px; flex: none; border-left: 1px solid var(--line); padding: 8px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
-  #nlaInsp .g { display: grid; grid-template-columns: 92px 1fr; gap: 6px 8px; align-items: center; }
+  .trk button.add.on { background: #1e3a8a; border-color: #3b82f6; }
+  .trk input[type=range] { flex: 1; min-width: 0; }
+  .trk .wv { font: 10.5px Consolas, monospace; color: var(--dim); width: 28px; text-align: right; }
+  #nlaWrap { flex: 1; position: relative; min-width: 0; align-self: flex-start; }
+  #nlaCanvas { position: static; display: block; width: 100%; }
+  #nlaInsp { width: 230px; flex: none; border-left: 1px solid var(--line); padding: 8px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
+  #nlaInsp .g { display: grid; grid-template-columns: 82px 1fr; gap: 6px 8px; align-items: center; }
   #nlaInsp .g label { color: var(--dim); }
-  #nlaInsp .g input[type=number] { width: 100%; }
+  #nlaInsp input[type=number] { width: 100%; background: #2a2a34; border: 1px solid var(--line); color: var(--text); border-radius: 5px; padding: 4px 6px; font: inherit; }
   #nlaInsp .btns { display: flex; gap: 5px; flex-wrap: wrap; }
   #nlaInsp .btns button { padding: 4px 8px; font-size: 12px; }
-  #nlaInsp .hint { color: var(--dim); font-size: 11.5px; line-height: 1.5; }
+  #nlaInsp .hint { color: var(--dim); font-size: 11.5px; line-height: 1.55; }
+  #nlaInsp .ttl2 { font-weight: 700; }
   .dimmed { opacity: .45; pointer-events: none; }
 </style>
 </head>
@@ -225,6 +238,7 @@
   <div id="hud"></div>
   <div id="toast"></div>
 </main>
+<div id="nlaSplit" title="Потяните, чтобы изменить высоту NLA"></div>
 <section id="nla">
   <div id="nlaBar">
     <button id="nlaCollapse" title="Свернуть/развернуть">▾</button>
@@ -236,16 +250,23 @@
     <label class="chk"><input type="checkbox" id="nlaLoop" checked> Loop</label>
     <span id="nlaTime">0.00 / 0.00 s</span>
     <span class="sep"></span>
-    <button id="nlaAddTrack">+ Трек</button>
-    <button id="nlaAll" title="Заполнить выбранный трек всеми анимациями подряд">Все анимации подряд</button>
-    <label class="chk" title="Mix для новых клипов">Mix <input type="number" id="nlaDefMix" min="0" max="5" step="0.05" value="0.25"></label>
+    <button id="nlaFit" title="Показать весь таймлайн">⤢ Fit</button>
+    <button id="nlaZoomOut" title="Отдалить">−</button>
+    <button id="nlaZoomIn" title="Приблизить">+</button>
+    <label class="chk" title="Прилипание к краям клипов и плейхеду (Alt — временно выкл.)"><input type="checkbox" id="nlaSnap" checked> Snap</label>
     <span class="sep"></span>
+    <button id="nlaAll" title="Выложить все анимации подряд на выбранную дорожку">Все анимации подряд</button>
     <button id="nlaClear">Очистить</button>
     <button id="nlaExport" title="Сохранить раскладку в .json">Экспорт</button>
     <button id="nlaImport" title="Загрузить раскладку из .json">Импорт</button>
     <input type="file" id="nlaImportFile" accept=".json" style="display:none">
   </div>
   <div class="nla-body">
+    <div id="nlaLib">
+      <div class="hd">Анимации — тащите на дорожку</div>
+      <input id="nlaLibFilter" placeholder="Фильтр…">
+      <div id="nlaLibList"></div>
+    </div>
     <div id="nlaLeft">
       <div id="nlaHeads"></div>
       <div id="nlaWrap"><canvas id="nlaCanvas"></canvas></div>
@@ -827,7 +848,7 @@ function frame(now) {
     const { S, V } = M.rt, r = M.rt.renderer, sk = M.skeleton, state = M.state;
     const t0 = performance.now();
     const step = opt.playing ? dt * opt.speed : 0;
-    if (nlaActive()) { nlaStep(step); V.resetPose(sk); nlaApply(sk); }
+    if (nlaActive()) { if (!nlaDrag || nlaDrag.type !== 'scrub') nlaStep(step); V.resetPose(sk); nlaApply(sk); }
     else { if (opt.alpha < 1 || !M.entry) V.resetPose(sk); state.update(step); state.apply(sk); }
     if (sk.update) sk.update(step);
     V.updateWT(sk);
@@ -921,80 +942,49 @@ function updateStats() {
 }
 
 /* ======================================================================
- *  NLA — нелинейный редактор: треки с клипами подряд, кроссфейды (mix),
- *  слои треков с весом (Replace / Additive). Работает на всех версиях.
+ *  NLA — дорожки, клипы со свободным положением. Перекрытие клипов на одной
+ *  дорожке = кроссфейд. Дорожки-слои с весом (Replace / Additive).
  * ====================================================================== */
-const NLA = {
-  on: false, time: 0, loop: true,
-  tracks: [],                    // { name, weight, mode:'replace'|'add', mute, clips:[{anim, repeats, speed, mix, gap}] }
-  sel: null,                     // { t, i } выбранный клип
-  selTrack: 0,
-};
-const ROW = 48, RULER = 24, PADX = 12;
+const NLA = { on: false, time: 0, loop: true, tracks: [], sel: null, selTrack: 0, snap: true };
+const ROW = 44, RULER = 26, PADX = 10, XFADE = 0.2, DEF_TRACKS = 4;
+const view = { t0: 0, pps: 80 };
 const nel = {
-  root: $('nla'), on: $('nlaOn'), play: $('nlaPlay'), start: $('nlaStart'), loop: $('nlaLoop'), time: $('nlaTime'),
-  addTrack: $('nlaAddTrack'), all: $('nlaAll'), defMix: $('nlaDefMix'), clear: $('nlaClear'), exp: $('nlaExport'),
-  imp: $('nlaImport'), impFile: $('nlaImportFile'), heads: $('nlaHeads'), wrap: $('nlaWrap'), cv: $('nlaCanvas'),
-  insp: $('nlaInsp'), collapse: $('nlaCollapse'),
+  root: $('nla'), split: $('nlaSplit'), on: $('nlaOn'), play: $('nlaPlay'), start: $('nlaStart'), loop: $('nlaLoop'), time: $('nlaTime'),
+  fit: $('nlaFit'), zin: $('nlaZoomIn'), zout: $('nlaZoomOut'), snap: $('nlaSnap'), all: $('nlaAll'), clear: $('nlaClear'),
+  exp: $('nlaExport'), imp: $('nlaImport'), impFile: $('nlaImportFile'), lib: $('nlaLibList'), libFilter: $('nlaLibFilter'),
+  left: $('nlaLeft'), heads: $('nlaHeads'), wrap: $('nlaWrap'), cv: $('nlaCanvas'), insp: $('nlaInsp'), collapse: $('nlaCollapse'),
 };
+const clamp01 = v => Math.min(1, Math.max(0, v));
 
 /* --- применение анимации, совместимое со всеми версиями --- */
 function applyAnim(anim, sk, time, alpha, mode) {              // mode: 'setup' | 'replace' | 'add'
-  if (alpha <= 0.0001) return;
+  if (!anim || alpha <= 0.0001) return;
   const ev = [];
   if (M.rt.V.is43) anim.apply(sk, time, time, false, ev, alpha, mode === 'setup' ? 1 : 0, mode === 'add', false, false);
   else anim.apply(sk, time, time, false, ev, alpha, mode === 'setup' ? 0 : mode === 'add' ? 3 : 2, 0);
 }
 const findAnim = name => M && M.data.findAnimation(name);
-const animLen = a => a ? (a.duration > 0 ? a.duration : 1) : 1;  // поза (0 s) держится 1 секунду
-
-/* --- раскладка трека по времени --- */
-function layoutTrack(tr) {
-  let prevEnd = 0, prevDur = 0;
-  return tr.clips.map((c, i) => {
-    const a = findAnim(c.anim), dur = animLen(a) * c.repeats / c.speed;
-    const gap = Math.max(0, c.gap || 0);
-    const mix = Math.max(0, Math.min(c.mix || 0, dur, i && !gap ? prevDur : dur));
-    const start = i === 0 ? gap : prevEnd + gap - (gap ? 0 : mix);
-    const L = { c, a, start, dur, end: start + dur, mix };
-    prevEnd = L.end; prevDur = dur;
-    return L;
-  });
-}
-function nlaTotal() {
-  let t = 0;
-  for (const tr of NLA.tracks) { const L = layoutTrack(tr); if (L.length) t = Math.max(t, L[L.length - 1].end); }
-  return t;
-}
-function clipTime(L, T) {                                       // время внутри анимации клипа
+const animLen = a => a ? (a.duration > 0 ? a.duration : 1) : 1;  // поза (0 s) — 1 секунда
+function info(c) { const a = findAnim(c.anim), dur = animLen(a) * c.repeats / c.speed; return { c, a, start: c.start, dur, end: c.start + dur }; }
+function clipTime(L, T) {
   if (!L.a || L.a.duration <= 0) return 0;
   const lt = Math.min(Math.max(T - L.start, 0), L.dur) * L.c.speed, full = L.a.duration * L.c.repeats;
   return lt >= full - 1e-6 ? L.a.duration : lt % L.a.duration;
 }
+function nlaTotal() { let t = 0; for (const tr of NLA.tracks) for (const c of tr.clips) t = Math.max(t, info(c).end); return t; }
+const nlaActive = () => NLA.on && M && NLA.tracks.some(t => t.clips.length);
 
-/* --- вычисление позы на время T --- */
+/* --- поза на время T --- */
 function nlaApply(sk) {
   const T = NLA.time;
   NLA.tracks.forEach((tr, k) => {
-    if (tr.mute || !tr.clips.length) return;
-    const lay = layoutTrack(tr), W = tr.weight, base = k === 0;
-    let j = -1;
-    for (let i = 0; i < lay.length; i++) if (lay[i].start <= T + 1e-9) j = i;
-    if (j < 0) return;                                          // трек ещё не начался
-    const cur = lay[j], prev = j > 0 ? lay[j - 1] : null;
-    let w = cur.mix > 0 && (j > 0 || !base) ? Math.min(1, (T - cur.start) / cur.mix) : 1;
-    let fadeOut = 1;
-    if (!base && T > cur.end && j === lay.length - 1) {          // слой затухает после последнего клипа
-      const mo = Math.max(cur.mix, 0.0001); fadeOut = Math.max(0, 1 - (T - cur.end) / mo);
-      if (fadeOut <= 0) return;
-    }
-    const mode = tr.mode === 'add' ? 'add' : null;
-    if (prev && w < 1 && prev.a) {
-      applyAnim(prev.a, sk, clipTime(prev, Math.min(T, prev.end)), mode === 'add' ? W * (1 - w) : W, mode || (base ? 'setup' : 'replace'));
-      if (cur.a) applyAnim(cur.a, sk, clipTime(cur, T), W * w * fadeOut, mode || 'replace');
-    } else if (cur.a) {
-      applyAnim(cur.a, sk, clipTime(cur, T), W * w * fadeOut, mode || (base ? 'setup' : 'replace'));
-    }
+    if (tr.mute) return;
+    const act = tr.clips.map(info).filter(L => L.start <= T && T < L.end).sort((a, b) => a.start - b.start);
+    if (!act.length) return;
+    const W = tr.weight;
+    const w = act.map((L, i) => { if (!i) return 1; const ov = Math.min(act[i - 1].end, L.end) - L.start; return ov > 0 ? clamp01((T - L.start) / ov) : 1; });
+    if (tr.add) act.forEach((L, i) => applyAnim(L.a, sk, clipTime(L, T), W * w[i] * (i < act.length - 1 ? 1 - w[i + 1] : 1), 'add'));
+    else act.forEach((L, i) => applyAnim(L.a, sk, clipTime(L, T), i ? W * w[i] : W, i ? 'replace' : (k === 0 ? 'setup' : 'replace')));
   });
 }
 function nlaStep(step) {
@@ -1003,69 +993,82 @@ function nlaStep(step) {
   NLA.time += step;
   if (NLA.time >= total) {
     if (NLA.loop) NLA.time %= total;
-    else { NLA.time = total; if (opt.playing) togglePlay(); }
+    else { NLA.time = total - 1e-4; if (opt.playing) togglePlay(); }
   }
 }
-const nlaActive = () => NLA.on && M && NLA.tracks.some(t => t.clips.length);
 
-/* --- хранение --- */
-const nlaKey = () => M ? 'suv.nla.' + M.sk.name : null;
-function nlaSerialize() { return { version: 1, loop: NLA.loop, tracks: NLA.tracks }; }
+/* --- данные / хранение --- */
+const newTrack = i => ({ name: i === 0 ? 'Base' : 'Layer ' + i, weight: 1, add: false, mute: false, clips: [] });
+const nlaKey = () => M ? 'suv.nla2.' + M.sk.name : null;
+const nlaSerialize = () => ({ version: 2, loop: NLA.loop, tracks: NLA.tracks });
 function nlaSave() { if (M) lsSet(nlaKey(), JSON.stringify(nlaSerialize())); }
 function nlaLoadData(d) {
   const names = new Set(M.data.animations.map(a => a.name));
-  NLA.tracks = (d.tracks || []).map((t, k) => ({
-    name: t.name || ('Трек ' + (k + 1)), weight: t.weight ?? 1, mode: t.mode === 'add' ? 'add' : 'replace', mute: !!t.mute,
-    clips: (t.clips || []).filter(c => names.has(c.anim)).map(c => ({ anim: c.anim, repeats: c.repeats || 1, speed: c.speed || 1, mix: c.mix ?? 0.25, gap: c.gap || 0 })),
+  NLA.tracks = (d && d.version === 2 ? d.tracks : []).map((t, k) => ({
+    name: t.name || newTrack(k).name, weight: t.weight ?? 1, add: !!t.add, mute: !!t.mute,
+    clips: (t.clips || []).filter(c => names.has(c.anim)).map(c => ({ anim: c.anim, start: Math.max(0, +c.start || 0), repeats: +c.repeats || 1, speed: +c.speed || 1 })),
   }));
-  if (!NLA.tracks.length) NLA.tracks.push(newTrack());
-  NLA.loop = d.loop !== false; nel.loop.checked = NLA.loop;
+  while (NLA.tracks.length < DEF_TRACKS) NLA.tracks.push(newTrack(NLA.tracks.length));
+  NLA.loop = !d || d.loop !== false; nel.loop.checked = NLA.loop;
 }
 function nlaOnModelLoaded() {
   NLA.time = 0; NLA.sel = null; NLA.selTrack = 0;
   let d = null; try { d = JSON.parse(lsGet(nlaKey(), 'null')); } catch (e) {}
-  nlaLoadData(d || {});
-  nlaRebuild();
+  nlaLoadData(d);
+  nlaLibrary(); nlaHeads(); nlaInspector(); nlaFit();
 }
-const newTrack = () => ({ name: 'Трек ' + (NLA.tracks.length + 1), weight: 1, mode: 'replace', mute: false, clips: [] });
-function newClip(anim) { return { anim, repeats: 1, speed: 1, mix: +nel.defMix.value || 0, gap: 0 }; }
-
-/* --- изменения --- */
-function nlaChanged(rebuildHeads) {
-  if (rebuildHeads) nlaHeads();
-  nlaInspector(); nlaSave();
-}
+function nlaChanged(heads) { if (heads) nlaHeads(); nlaInspector(); nlaSave(); }
 function nlaEnable(v) {
   NLA.on = v; nel.on.checked = v;
   document.querySelectorAll('.single-anim').forEach(e => e.classList.toggle('dimmed', v));
   if (v && M) { M.state.clearTracks(); M.rt.V.resetPose(M.skeleton); }
   if (!v && M) setAnimation(el.animSelect.value);
 }
-function addClip(t, anim, at) {
-  if (!M || !anim) return;
-  const tr = NLA.tracks[t]; if (!tr) return;
-  const i = at === undefined ? tr.clips.length : at;
-  tr.clips.splice(i, 0, newClip(anim));
-  NLA.sel = { t, i }; NLA.selTrack = t;
+const trackOf = c => NLA.tracks.findIndex(t => t.clips.includes(c));
+const trackEnd = tr => tr.clips.reduce((m, c) => Math.max(m, info(c).end), 0);
+function addClip(k, anim, start) {
+  if (!M || !anim || !NLA.tracks[k]) return;
+  const tr = NLA.tracks[k];
+  if (start === undefined) start = tr.clips.length ? Math.max(0, trackEnd(tr) - XFADE) : 0;
+  const c = { anim, start: Math.max(0, start), repeats: 1, speed: 1 };
+  tr.clips.push(c); NLA.sel = c; NLA.selTrack = k;
   if (!NLA.on) nlaEnable(true);
   nlaChanged(true);
 }
 
-/* --- заголовки треков --- */
+/* --- библиотека анимаций (drag & drop) --- */
+const hue = s => { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % 360; };
+let libDrag = null;
+function nlaLibrary() {
+  if (!M) { nel.lib.innerHTML = ''; return; }
+  const f = nel.libFilter.value.trim().toLowerCase();
+  nel.lib.innerHTML = M.data.animations.filter(a => !f || a.name.toLowerCase().includes(f)).map(a =>
+    `<div class="lib-item" draggable="true" data-a="${esc(a.name)}" title="Перетащите на дорожку · двойной клик — в конец выбранной дорожки">
+       <span class="sw" style="background:hsl(${hue(a.name)},50%,45%)"></span><span class="n">${esc(a.name)}</span><span class="d">${a.duration.toFixed(2)}s</span></div>`).join('');
+}
+nel.libFilter.addEventListener('input', nlaLibrary);
+nel.lib.addEventListener('dragstart', e => {
+  const it = e.target.closest('.lib-item'); if (!it) return;
+  libDrag = it.dataset.a;
+  e.dataTransfer.setData('text/plain', 'spine-anim:' + libDrag); e.dataTransfer.effectAllowed = 'copy';
+});
+nel.lib.addEventListener('dragend', () => { libDrag = null; dropPreview = null; dragDepth = 0; document.body.classList.remove('dragging'); });
+nel.lib.addEventListener('dblclick', e => { const it = e.target.closest('.lib-item'); if (it) addClip(NLA.selTrack, it.dataset.a); });
+
+/* --- заголовки дорожек --- */
 function nlaHeads() {
-  const h = [`<div class="ruler" title="Двойной клик по треку — добавить клип">Треки</div>`];
+  const h = [`<div class="ruler"><button id="nlaAddTrack" title="Добавить дорожку">+ Дорожка</button></div>`];
   NLA.tracks.forEach((tr, k) => {
     h.push(`<div class="trk${k === NLA.selTrack ? ' sel' : ''}" data-t="${k}">
-      <div class="r1"><span class="nm" title="${esc(tr.name)}">${k === 0 ? '◆ ' : ''}${esc(tr.name)}</span>
+      <div class="r1"><span class="nm">${k === 0 ? '◆ ' : ''}${esc(tr.name)}</span>
+        <button data-act="add" class="add${tr.add ? ' on' : ''}" title="Additive (прибавлять к нижним дорожкам)">A</button>
         <button data-act="mute" class="${tr.mute ? 'on' : ''}" title="Mute">M</button>
-        <button data-act="up" title="Выше">▲</button><button data-act="down" title="Ниже">▼</button>
-        <button data-act="del" title="Удалить трек">✕</button></div>
-      <div class="r2"><select data-act="mode" ${k === 0 ? 'title="Базовый трек"' : ''}>
-          <option value="replace"${tr.mode !== 'add' ? ' selected' : ''}>Replace</option><option value="add"${tr.mode === 'add' ? ' selected' : ''}>Additive</option></select>
-        <input type="range" data-act="w" min="0" max="1" step="0.01" value="${tr.weight}"><span class="wv">${tr.weight.toFixed(2)}</span></div>
+        <button data-act="del" title="Удалить дорожку">✕</button></div>
+      <div class="r2"><input type="range" data-act="w" min="0" max="1" step="0.01" value="${tr.weight}" title="Вес дорожки"><span class="wv">${tr.weight.toFixed(2)}</span></div>
     </div>`);
   });
   nel.heads.innerHTML = h.join('');
+  $('nlaAddTrack').onclick = () => { NLA.tracks.push(newTrack(NLA.tracks.length)); nlaChanged(true); };
   nlaSize();
 }
 nel.heads.addEventListener('click', e => {
@@ -1073,204 +1076,307 @@ nel.heads.addEventListener('click', e => {
   const k = +row.dataset.t, tr = NLA.tracks[k], act = e.target.dataset.act;
   NLA.selTrack = k;
   if (act === 'mute') tr.mute = !tr.mute;
-  else if (act === 'del') { if (NLA.tracks.length > 1) NLA.tracks.splice(k, 1); else tr.clips = []; NLA.sel = null; NLA.selTrack = 0; }
-  else if (act === 'up' && k > 0) { [NLA.tracks[k - 1], NLA.tracks[k]] = [tr, NLA.tracks[k - 1]]; NLA.selTrack = k - 1; NLA.sel = null; }
-  else if (act === 'down' && k < NLA.tracks.length - 1) { [NLA.tracks[k + 1], NLA.tracks[k]] = [tr, NLA.tracks[k + 1]]; NLA.selTrack = k + 1; NLA.sel = null; }
-  else if (act) return;
+  else if (act === 'add') tr.add = !tr.add;
+  else if (act === 'del') { if (NLA.tracks.length > 1) { NLA.tracks.splice(k, 1); NLA.selTrack = 0; } else tr.clips = []; NLA.sel = null; }
+  else if (act === 'w') return;
   nlaChanged(true);
 });
 nel.heads.addEventListener('input', e => {
-  const row = e.target.closest('.trk'); if (!row) return;
-  const tr = NLA.tracks[+row.dataset.t];
-  if (e.target.dataset.act === 'w') { tr.weight = +e.target.value; row.querySelector('.wv').textContent = tr.weight.toFixed(2); nlaSave(); }
-});
-nel.heads.addEventListener('change', e => {
-  const row = e.target.closest('.trk'); if (!row) return;
-  if (e.target.dataset.act === 'mode') { NLA.tracks[+row.dataset.t].mode = e.target.value; nlaSave(); }
-});
-nel.heads.addEventListener('dblclick', e => {
-  const row = e.target.closest('.trk'); if (!row || e.target.closest('button,select,input')) return;
-  const anim = $('nlaAddAnim') ? $('nlaAddAnim').value : null;
-  addClip(+row.dataset.t, anim);
+  const row = e.target.closest('.trk'); if (!row || e.target.dataset.act !== 'w') return;
+  const tr = NLA.tracks[+row.dataset.t]; tr.weight = +e.target.value;
+  row.querySelector('.wv').textContent = tr.weight.toFixed(2); nlaSave();
 });
 
 /* --- инспектор --- */
-function animOptions(sel) { return M ? M.data.animations.map(a => `<option value="${esc(a.name)}"${a.name === sel ? ' selected' : ''}>${esc(a.name)} (${a.duration.toFixed(2)}s)</option>`).join('') : ''; }
 function nlaInspector() {
   if (!M) { nel.insp.innerHTML = '<div class="hint">Загрузите модель.</div>'; return; }
-  const s = NLA.sel && NLA.tracks[NLA.sel.t] && NLA.tracks[NLA.sel.t].clips[NLA.sel.i] ? NLA.sel : null;
-  const lastAdd = $('nlaAddAnim') ? $('nlaAddAnim').value : null;
-  let h = `<div class="g"><label>Анимация</label><select id="nlaAddAnim">${animOptions(lastAdd || (M.data.animations[0] || {}).name)}</select></div>
-    <div class="btns"><button id="nlaAddBtn">+ В трек «${esc((NLA.tracks[NLA.selTrack] || {}).name || '')}»</button>
-    ${s ? '<button id="nlaInsBtn" title="Вставить после выбранного">+ После клипа</button>' : ''}</div>`;
-  if (s) {
-    const c = NLA.tracks[s.t].clips[s.i], L = layoutTrack(NLA.tracks[s.t])[s.i];
-    h += `<div style="border-top:1px solid var(--line);margin-top:2px;padding-top:7px;font-weight:700">Клип ${s.i + 1} · ${esc(NLA.tracks[s.t].name)}</div>
+  const c = NLA.sel, k = c ? trackOf(c) : -1;
+  let h = '';
+  if (c && k >= 0) {
+    const L = info(c);
+    h += `<div class="ttl2">Клип · ${esc(NLA.tracks[k].name)}</div>
     <div class="g">
-      <label>Анимация</label><select data-k="anim">${animOptions(c.anim)}</select>
-      <label>Повторы</label><input type="number" data-k="repeats" min="0.1" max="50" step="1" value="${c.repeats}">
-      <label>Скорость</label><input type="number" data-k="speed" min="0.05" max="10" step="0.05" value="${c.speed}">
-      <label>Mix (вход), s</label><input type="number" data-k="mix" min="0" max="10" step="0.05" value="${c.mix}">
-      <label>Пауза до, s</label><input type="number" data-k="gap" min="0" max="30" step="0.1" value="${c.gap}">
-      <label>Тайминг</label><span style="font-family:Consolas,monospace;color:var(--dim)">${L.start.toFixed(2)} → ${L.end.toFixed(2)} s</span>
+      <label>Анимация</label><select data-k="anim">${M.data.animations.map(a => `<option value="${esc(a.name)}"${a.name === c.anim ? ' selected' : ''}>${esc(a.name)}</option>`).join('')}</select>
+      <label>Начало, s</label><input type="number" data-k="start" min="0" step="0.05" value="${+c.start.toFixed(3)}">
+      <label>Повторы</label><input type="number" data-k="repeats" min="0.05" step="1" value="${+c.repeats.toFixed(3)}">
+      <label>Скорость</label><input type="number" data-k="speed" min="0.05" step="0.05" value="${c.speed}">
+      <label>Длина, s</label><span style="font-family:Consolas,monospace">${L.dur.toFixed(2)} (${L.start.toFixed(2)}→${L.end.toFixed(2)})</span>
     </div>
-    <div class="btns"><button data-op="left">◀</button><button data-op="right">▶</button><button data-op="dup">Дублировать</button>
-      <button data-op="go">К началу</button><button data-op="del">Удалить</button></div>`;
+    <div class="btns"><button data-op="dup">Дублировать</button><button data-op="here">← к плейхеду</button><button data-op="go">Плейхед →</button><button data-op="del">Удалить</button></div>`;
   }
-  h += `<div class="hint">Клик — выбрать клип · перетаскивание — порядок/трек · клик по линейке — перемотка · Del — удалить клип.<br>
-    Mix — длина кроссфейда с предыдущим клипом. Трек ◆ — базовый, остальные накладываются с весом (Replace) или прибавляются (Additive).</div>`;
+  h += `<div class="hint"><b>Перетаскивание</b> анимации из списка на дорожку — добавить клип.<br>
+    Клип тащится мышью по времени и между дорожками, правый край — длина (повторы).<br>
+    <b>Наложение</b> клипов на одной дорожке = плавное смешивание (кроссфейд по длине перекрытия).<br>
+    Дорожки выше ◆ Base накладываются с весом, <b>A</b> — additive.<br>
+    Колесо — зум, Shift+колесо / ПКМ / СКМ — прокрутка, клик по линейке — перемотка, Del — удалить клип.</div>`;
   nel.insp.innerHTML = h;
-  $('nlaAddBtn').onclick = () => addClip(NLA.selTrack, $('nlaAddAnim').value);
-  if ($('nlaInsBtn')) $('nlaInsBtn').onclick = () => addClip(s.t, $('nlaAddAnim').value, s.i + 1);
   nel.insp.querySelectorAll('[data-k]').forEach(inp => inp.addEventListener('change', () => {
-    const c = NLA.tracks[s.t].clips[s.i], k = inp.dataset.k;
-    c[k] = k === 'anim' ? inp.value : Math.max(+inp.min || 0, +inp.value || 0) || (k === 'mix' || k === 'gap' ? 0 : 1);
+    const key = inp.dataset.k;
+    if (key === 'anim') c.anim = inp.value;
+    else { const v = +inp.value; if (isFinite(v)) c[key] = key === 'start' ? Math.max(0, v) : Math.max(0.05, v); }
     nlaChanged(false);
   }));
   nel.insp.querySelectorAll('[data-op]').forEach(b => b.addEventListener('click', () => {
-    const cl = NLA.tracks[s.t].clips, op = b.dataset.op;
-    if (op === 'left' && s.i > 0) { [cl[s.i - 1], cl[s.i]] = [cl[s.i], cl[s.i - 1]]; NLA.sel.i--; }
-    else if (op === 'right' && s.i < cl.length - 1) { [cl[s.i + 1], cl[s.i]] = [cl[s.i], cl[s.i + 1]]; NLA.sel.i++; }
-    else if (op === 'dup') { cl.splice(s.i + 1, 0, { ...cl[s.i] }); NLA.sel.i++; }
-    else if (op === 'del') { cl.splice(s.i, 1); NLA.sel = null; }
-    else if (op === 'go') NLA.time = layoutTrack(NLA.tracks[s.t])[s.i].start;
+    const op = b.dataset.op, tr = NLA.tracks[k];
+    if (op === 'dup') { const d = { ...c, start: info(c).end - XFADE }; tr.clips.push(d); NLA.sel = d; }
+    else if (op === 'del') { tr.clips.splice(tr.clips.indexOf(c), 1); NLA.sel = null; }
+    else if (op === 'here') c.start = Math.max(0, NLA.time);
+    else if (op === 'go') NLA.time = c.start;
     nlaChanged(false);
   }));
 }
 
-/* --- таймлайн (canvas) --- */
-let nlaPPS = 100;
-const tx = t => PADX + t * nlaPPS;
+/* --- вид таймлайна --- */
+const tx = t => PADX + (t - view.t0) * view.pps;
+const tAt = x => view.t0 + (x - PADX) / view.pps;
+const cvW = () => nel.cv.width / (window.devicePixelRatio || 1);
+function nlaFit() {
+  const total = Math.max(nlaTotal(), 2);
+  view.t0 = 0; view.pps = Math.max(5, (cvW() - PADX * 2) / (total * 1.03));
+}
+function zoomTL(f, x) {
+  const t = tAt(x);
+  view.pps = Math.min(3000, Math.max(3, view.pps * f));
+  view.t0 = Math.max(-1, t - (x - PADX) / view.pps);
+}
 function nlaSize() {
-  const dprL = window.devicePixelRatio || 1, w = nel.wrap.clientWidth, h = RULER + NLA.tracks.length * ROW;
+  const d = window.devicePixelRatio || 1, w = nel.wrap.clientWidth;
+  const h = Math.max(RULER + NLA.tracks.length * ROW + 20, nel.left.clientHeight);
   nel.cv.style.height = h + 'px';
-  if (nel.cv.width !== Math.round(w * dprL) || nel.cv.height !== Math.round(h * dprL)) { nel.cv.width = Math.round(w * dprL); nel.cv.height = Math.round(h * dprL); }
+  if (nel.cv.width !== Math.round(w * d) || nel.cv.height !== Math.round(h * d)) { nel.cv.width = Math.round(w * d); nel.cv.height = Math.round(h * d); }
 }
 new ResizeObserver(nlaSize).observe(nel.wrap);
-const hue = s => { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % 360; };
-let nlaDrag = null;
+new ResizeObserver(nlaSize).observe(nel.left);
+
+/* --- отрисовка --- */
+let nlaDrag = null, dropPreview = null, hoverCursor = '';
+function drawClip(ctx, L, y, sel, ghost, muted) {
+  const x0 = tx(L.start), x1 = tx(L.end), yy = y + 4, hh = ROW - 8, hu = hue(L.c.anim);
+  ctx.globalAlpha = ghost ? .55 : muted ? .35 : 1;
+  ctx.fillStyle = `hsl(${hu},45%,${sel ? 42 : 31}%)`; ctx.fillRect(x0, yy, x1 - x0, hh);
+  if (L.a && L.a.duration > 0 && L.c.repeats > 1) {
+    ctx.strokeStyle = 'rgba(255,255,255,.2)';
+    for (let r = 1; r < L.c.repeats; r++) { const xr = Math.round(tx(L.start + r * L.a.duration / L.c.speed)) + .5; ctx.beginPath(); ctx.moveTo(xr, yy + hh * .55); ctx.lineTo(xr, yy + hh); ctx.stroke(); }
+  }
+  ctx.strokeStyle = sel ? '#fff' : `hsl(${hu},55%,58%)`; ctx.lineWidth = sel ? 2 : 1;
+  ctx.strokeRect(x0 + .5, yy + .5, Math.max(1, x1 - x0 - 1), hh - 1); ctx.lineWidth = 1;
+  ctx.fillStyle = sel ? '#fff' : 'rgba(255,255,255,.35)'; ctx.fillRect(x1 - 4, yy + hh / 2 - 7, 2, 14);   // ручка длины
+  ctx.save(); ctx.beginPath(); ctx.rect(x0 + 2, yy, Math.max(0, x1 - x0 - 8), hh); ctx.clip();
+  ctx.fillStyle = '#fff'; ctx.font = '600 11px Segoe UI, sans-serif'; ctx.textBaseline = 'middle';
+  ctx.fillText(L.c.anim + (L.c.repeats !== 1 ? ` ×${+L.c.repeats.toFixed(2)}` : '') + (L.c.speed !== 1 ? ` @${L.c.speed}x` : ''), x0 + 6, yy + 11);
+  ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '10px Consolas, monospace';
+  ctx.fillText(L.dur.toFixed(2) + 's', x0 + 6, yy + hh - 9);
+  ctx.restore(); ctx.globalAlpha = 1;
+}
 function nlaDraw() {
   if (nel.root.classList.contains('collapsed')) return;
   const ctx = nel.cv.getContext('2d'), d = window.devicePixelRatio || 1, W = nel.cv.width / d, H = nel.cv.height / d;
+  const sc = nel.left.scrollTop, total = nlaTotal();
   ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, W, H);
-  const total = nlaTotal();
-  nlaPPS = (W - PADX * 2) / Math.max(total, 1);
-  // ruler
-  ctx.fillStyle = '#1c1c22'; ctx.fillRect(0, 0, W, RULER);
-  const want = 70 / nlaPPS, p = Math.pow(10, Math.floor(Math.log10(want)));
+  const want = 80 / view.pps, p = Math.pow(10, Math.floor(Math.log10(want)));
   const step = [1, 2, 5, 10].map(m => m * p).find(s => s >= want);
-  ctx.font = '10px Consolas, monospace'; ctx.textBaseline = 'middle';
-  for (let t = 0; t <= Math.max(total, 1) + 1e-6; t += step) {
-    const x = Math.round(tx(t)) + .5;
-    ctx.strokeStyle = '#3a3a45'; ctx.beginPath(); ctx.moveTo(x, RULER - 7); ctx.lineTo(x, H); ctx.stroke();
-    ctx.fillStyle = '#8a8aa0'; ctx.fillText(+t.toFixed(2) + 's', x + 3, 9);
-  }
-  // tracks
+  const tStart = Math.floor(tAt(0) / step) * step, tEnd = tAt(W);
+  // дорожки
   NLA.tracks.forEach((tr, k) => {
     const y = RULER + k * ROW;
-    ctx.fillStyle = k === NLA.selTrack ? 'rgba(99,102,241,.07)' : (k % 2 ? 'rgba(255,255,255,.015)' : 'transparent');
+    ctx.fillStyle = k === NLA.selTrack ? 'rgba(99,102,241,.08)' : (k % 2 ? 'rgba(255,255,255,.018)' : 'rgba(0,0,0,0)');
     ctx.fillRect(0, y, W, ROW);
     ctx.strokeStyle = '#2c2c36'; ctx.beginPath(); ctx.moveTo(0, y + ROW - .5); ctx.lineTo(W, y + ROW - .5); ctx.stroke();
-    layoutTrack(tr).forEach((L, i) => {
-      const x0 = tx(L.start), x1 = tx(L.end), yy = y + 6, hh = ROW - 12, hu = hue(L.c.anim);
-      const sel = NLA.sel && NLA.sel.t === k && NLA.sel.i === i;
-      ctx.globalAlpha = tr.mute ? .35 : 1;
-      ctx.fillStyle = `hsl(${hu},45%,${sel ? 42 : 32}%)`; ctx.fillRect(x0, yy, x1 - x0, hh);
-      if (L.mix > 0 && (i > 0 || k > 0)) {                       // рампа кроссфейда
-        const xm = tx(L.start + L.mix);
-        ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.moveTo(x0, yy); ctx.lineTo(xm, yy); ctx.lineTo(x0, yy + hh); ctx.closePath(); ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.moveTo(x0, yy + hh); ctx.lineTo(xm, yy); ctx.stroke();
-      }
-      if (L.c.repeats > 1 && L.a && L.a.duration > 0) {          // границы повторов
-        ctx.strokeStyle = 'rgba(255,255,255,.18)';
-        for (let r = 1; r < L.c.repeats; r++) { const xr = Math.round(tx(L.start + r * L.a.duration / L.c.speed)) + .5; ctx.beginPath(); ctx.moveTo(xr, yy + hh * .55); ctx.lineTo(xr, yy + hh); ctx.stroke(); }
-      }
-      ctx.strokeStyle = sel ? '#fff' : `hsl(${hu},55%,55%)`; ctx.lineWidth = sel ? 2 : 1; ctx.strokeRect(x0 + .5, yy + .5, x1 - x0 - 1, hh - 1); ctx.lineWidth = 1;
-      ctx.save(); ctx.beginPath(); ctx.rect(x0 + 2, yy, x1 - x0 - 4, hh); ctx.clip();
-      ctx.fillStyle = '#fff'; ctx.font = '600 11px Segoe UI, sans-serif';
-      ctx.fillText(L.c.anim + (L.c.repeats !== 1 ? ` ×${L.c.repeats}` : '') + (L.c.speed !== 1 ? ` @${L.c.speed}x` : ''), x0 + 6, yy + hh / 2 - 6);
-      ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '10px Consolas, monospace';
-      ctx.fillText(L.dur.toFixed(2) + 's' + (L.mix > 0 && (i > 0 || k > 0) ? ` · mix ${L.mix.toFixed(2)}` : ''), x0 + 6, yy + hh / 2 + 8);
-      ctx.restore(); ctx.globalAlpha = 1;
-    });
   });
-  // маркер вставки при перетаскивании
-  if (nlaDrag && nlaDrag.type === 'clip' && nlaDrag.moved && nlaDrag.target) {
-    const { t, x } = nlaDrag.target, y = RULER + t * ROW;
-    ctx.fillStyle = '#fbbf24'; ctx.fillRect(x - 1.5, y + 2, 3, ROW - 4);
+  ctx.strokeStyle = 'rgba(255,255,255,.05)';
+  for (let t = tStart; t <= tEnd; t += step) { const x = Math.round(tx(t)) + .5; ctx.beginPath(); ctx.moveTo(x, RULER); ctx.lineTo(x, H); ctx.stroke(); }
+  if (total > 0) { ctx.fillStyle = 'rgba(0,0,0,.25)'; const xe = tx(total); if (xe < W) ctx.fillRect(xe, RULER, W - xe, H); }
+  // клипы + зоны смешивания
+  NLA.tracks.forEach((tr, k) => {
+    const y = RULER + k * ROW, lay = tr.clips.map(info).sort((a, b) => a.start - b.start);
+    lay.forEach(L => drawClip(ctx, L, y, L.c === NLA.sel, false, tr.mute));
+    for (let i = 1; i < lay.length; i++) {
+      const p = lay.slice(0, i).reduce((m, L) => (L.end > m.end ? L : m), lay[0]);
+      const a = lay[i].start, b = Math.min(p.end, lay[i].end);
+      if (b - a <= 1e-6) continue;
+      const x0 = tx(a), x1 = tx(b), yy = y + 4, hh = ROW - 8;
+      ctx.fillStyle = 'rgba(251,191,36,.18)'; ctx.fillRect(x0, yy, x1 - x0, hh);
+      ctx.strokeStyle = 'rgba(251,191,36,.9)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x0, yy + hh); ctx.lineTo(x1, yy); ctx.moveTo(x0, yy); ctx.lineTo(x1, yy + hh); ctx.stroke(); ctx.lineWidth = 1;
+      if (x1 - x0 > 34) { ctx.fillStyle = '#fbbf24'; ctx.font = '10px Consolas, monospace'; ctx.textBaseline = 'middle'; ctx.fillText((b - a).toFixed(2) + 's', (x0 + x1) / 2 - 14, yy + hh / 2); }
+    }
+  });
+  if (dropPreview) {
+    const a = findAnim(dropPreview.anim);
+    drawClip(ctx, { c: { anim: dropPreview.anim, repeats: 1, speed: 1 }, a, start: dropPreview.start, dur: animLen(a), end: dropPreview.start + animLen(a) }, RULER + dropPreview.k * ROW, true, true, false);
   }
-  // playhead
+  if (nlaDrag && nlaDrag.snapT !== undefined && nlaDrag.snapT !== null) {
+    const xs = Math.round(tx(nlaDrag.snapT)) + .5; ctx.strokeStyle = '#38bdf8'; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(xs, RULER); ctx.lineTo(xs, H); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // линейка (липкая)
+  ctx.fillStyle = '#1c1c22'; ctx.fillRect(0, sc, W, RULER);
+  ctx.strokeStyle = '#3a3a45'; ctx.beginPath(); ctx.moveTo(0, sc + RULER - .5); ctx.lineTo(W, sc + RULER - .5); ctx.stroke();
+  ctx.font = '10px Consolas, monospace'; ctx.textBaseline = 'middle';
+  for (let t = tStart; t <= tEnd; t += step) {
+    const x = Math.round(tx(t)) + .5;
+    ctx.strokeStyle = '#55556a'; ctx.beginPath(); ctx.moveTo(x, sc + RULER - 8); ctx.lineTo(x, sc + RULER); ctx.stroke();
+    ctx.fillStyle = '#9a9aae'; ctx.fillText(+t.toFixed(3) + 's', x + 3, sc + 9);
+    for (let m = 1; m < 5; m++) { const xm = Math.round(tx(t + m * step / 5)) + .5; ctx.beginPath(); ctx.moveTo(xm, sc + RULER - 4); ctx.lineTo(xm, sc + RULER); ctx.stroke(); }
+  }
+  // плейхед
   const px = Math.round(tx(NLA.time)) + .5;
-  ctx.strokeStyle = '#f87171'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke(); ctx.lineWidth = 1;
-  ctx.fillStyle = '#f87171'; ctx.beginPath(); ctx.moveTo(px - 5, 0); ctx.lineTo(px + 5, 0); ctx.lineTo(px, 7); ctx.fill();
+  ctx.strokeStyle = '#f87171'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(px, sc); ctx.lineTo(px, H); ctx.stroke(); ctx.lineWidth = 1;
+  ctx.fillStyle = '#f87171'; ctx.beginPath(); ctx.moveTo(px - 6, sc); ctx.lineTo(px + 6, sc); ctx.lineTo(px + 6, sc + 9); ctx.lineTo(px, sc + 15); ctx.lineTo(px - 6, sc + 9); ctx.fill();
   nel.time.textContent = `${NLA.time.toFixed(2)} / ${total.toFixed(2)} s`;
 }
 
-function hitClip(x, y) {
-  const k = Math.floor((y - RULER) / ROW);
-  if (k < 0 || k >= NLA.tracks.length) return { k: -1, i: -1 };
-  const lay = layoutTrack(NLA.tracks[k]);
-  for (let i = lay.length - 1; i >= 0; i--) if (x >= tx(lay[i].start) && x <= tx(lay[i].end)) return { k, i };
-  return { k, i: -1 };
-}
-function dropTarget(x, y) {
-  const t = Math.min(Math.max(Math.floor((y - RULER) / ROW), 0), NLA.tracks.length - 1);
-  const lay = layoutTrack(NLA.tracks[t]);
-  let i = lay.length;
-  for (let n = 0; n < lay.length; n++) if (x < (tx(lay[n].start) + tx(lay[n].end)) / 2) { i = n; break; }
-  const xm = i < lay.length ? tx(lay[i].start) : (lay.length ? tx(lay[lay.length - 1].end) : PADX);
-  return { t, i, x: xm };
-}
+/* --- мышь на таймлайне --- */
 const evXY = e => { const r = nel.cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
-const scrubTo = x => { NLA.time = Math.min(Math.max((x - PADX) / nlaPPS, 0), nlaTotal()); if (!NLA.on && M) nlaEnable(true); };
+const rowAt = y => Math.floor((y - RULER) / ROW);
+function hit(x, y) {
+  const k = rowAt(y);
+  if (y - nel.left.scrollTop < RULER || k < 0 || k >= NLA.tracks.length) return { k: -1 };
+  const lay = NLA.tracks[k].clips.map(info).sort((a, b) => a.start - b.start);
+  for (let i = lay.length - 1; i >= 0; i--) {                    // сначала ручки длины (они могут быть под соседним клипом)
+    const x1 = tx(lay[i].end);
+    if (x >= x1 - 7 && x <= x1 + 3) return { k, c: lay[i].c, edge: true };
+  }
+  for (let i = lay.length - 1; i >= 0; i--) {
+    const x0 = tx(lay[i].start), x1 = tx(lay[i].end);
+    if (x >= x0 && x <= x1 + 3) return { k, c: lay[i].c, edge: x >= x1 - 7 };
+  }
+  return { k };
+}
+function snapTime(cands, exclude, e) {                            // cands: [время, ...] — ищем ближайшую точку прилипания
+  if (!NLA.snap || (e && e.altKey)) return null;
+  const pts = [0, NLA.time];
+  for (const tr of NLA.tracks) for (const c of tr.clips) if (c !== exclude) { const L = info(c); pts.push(L.start, L.end); }
+  let best = null, bd = 8 / view.pps;
+  for (const t of cands) for (const p of pts) { const dd = Math.abs(t - p); if (dd < bd) { bd = dd; best = { delta: p - t, at: p }; } }
+  return best;
+}
+const scrubTo = x => { NLA.time = Math.max(0, tAt(x)); if (!NLA.on && M) nlaEnable(true); };
+nel.cv.addEventListener('contextmenu', e => e.preventDefault());
 nel.cv.addEventListener('pointerdown', e => {
   if (!M) return;
   const { x, y } = evXY(e);
   nel.cv.setPointerCapture(e.pointerId);
-  if (y < RULER) { nlaDrag = { type: 'scrub' }; scrubTo(x); return; }
-  const h = hitClip(x, y);
+  if (e.button === 1 || e.button === 2) { nlaDrag = { type: 'pan', x, t0: view.t0, sy: e.clientY, st: nel.left.scrollTop }; return; }
+  const h = hit(x, y);
   if (h.k >= 0) NLA.selTrack = h.k;
-  if (h.i >= 0) { NLA.sel = { t: h.k, i: h.i }; nlaDrag = { type: 'clip', x0: x, y0: y, from: { ...NLA.sel }, moved: false }; }
-  else { NLA.sel = null; nlaDrag = { type: 'scrub' }; scrubTo(x); }
+  if (h.c) {
+    NLA.sel = h.c;
+    nlaDrag = h.edge ? { type: 'resize', c: h.c } : { type: 'move', c: h.c, off: tAt(x) - h.c.start };
+    if (e.ctrlKey && !h.edge) {                                    // Ctrl+перетаскивание — копия
+      const cp = { ...h.c }; NLA.tracks[h.k].clips.push(cp); NLA.sel = cp; nlaDrag.c = cp;
+    }
+  } else { NLA.sel = h.k >= 0 ? null : NLA.sel; nlaDrag = { type: 'scrub' }; scrubTo(x); }
   nlaChanged(true);
 });
 nel.cv.addEventListener('pointermove', e => {
-  if (!nlaDrag) return;
   const { x, y } = evXY(e);
-  if (nlaDrag.type === 'scrub') scrubTo(x);
-  else { if (Math.abs(x - nlaDrag.x0) + Math.abs(y - nlaDrag.y0) > 5) nlaDrag.moved = true; if (nlaDrag.moved) nlaDrag.target = dropTarget(x, y); }
+  if (!nlaDrag) {
+    const h = M ? hit(x, y) : {};
+    const cur = h.c ? (h.edge ? 'ew-resize' : 'grab') : (y - nel.left.scrollTop < RULER ? 'col-resize' : 'default');
+    if (cur !== hoverCursor) { nel.cv.style.cursor = cur; hoverCursor = cur; }
+    return;
+  }
+  const d = nlaDrag;
+  if (d.type === 'scrub') scrubTo(x);
+  else if (d.type === 'pan') { view.t0 = Math.max(-1, d.t0 - (x - d.x) / view.pps); nel.left.scrollTop = d.st - (e.clientY - d.sy); }
+  else if (d.type === 'move') {
+    const L = info(d.c);
+    let s = Math.max(0, tAt(x) - d.off);
+    const sn = snapTime([s, s + L.dur], d.c, e);
+    if (sn) s = Math.max(0, s + sn.delta);
+    d.snapT = sn ? sn.at : null;
+    d.c.start = s;
+    const k = Math.min(Math.max(rowAt(y), 0), NLA.tracks.length - 1), from = trackOf(d.c);
+    if (k !== from && from >= 0) { NLA.tracks[from].clips.splice(NLA.tracks[from].clips.indexOf(d.c), 1); NLA.tracks[k].clips.push(d.c); NLA.selTrack = k; }
+    nel.cv.style.cursor = 'grabbing';
+  } else if (d.type === 'resize') {
+    const L = info(d.c), len = animLen(L.a);
+    let end = Math.max(d.c.start + 0.03, tAt(x));
+    const sn = snapTime([end], d.c, e);
+    if (sn) end += sn.delta;
+    let rep = (end - d.c.start) * d.c.speed / len;
+    const near = Math.round(rep);                                  // прилипание к целым повторам
+    if (near >= 1 && Math.abs(rep - near) * len / d.c.speed * view.pps < 7 && !e.altKey) { rep = near; d.snapT = null; } else d.snapT = sn ? sn.at : null;
+    d.c.repeats = Math.max(0.05, +rep.toFixed(3));
+  }
 });
-nel.cv.addEventListener('pointerup', () => {
-  const d = nlaDrag; nlaDrag = null;
-  if (!d || d.type !== 'clip' || !d.moved || !d.target) return;
-  const src = NLA.tracks[d.from.t].clips, clip = src[d.from.i];
-  let { t, i } = d.target;
-  src.splice(d.from.i, 1);
-  if (t === d.from.t && i > d.from.i) i--;
-  NLA.tracks[t].clips.splice(i, 0, clip);
-  NLA.sel = { t, i }; NLA.selTrack = t;
-  nlaChanged(true);
+const endDragTL = () => {
+  if (!nlaDrag) return;
+  const was = nlaDrag.type; nlaDrag = null; hoverCursor = '';
+  if (was === 'move' || was === 'resize') nlaChanged(true);
+};
+nel.cv.addEventListener('pointerup', endDragTL);
+nel.cv.addEventListener('pointercancel', endDragTL);
+nel.cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  const { x } = evXY(e);
+  if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) view.t0 = Math.max(-1, view.t0 + (e.deltaX || e.deltaY) / view.pps);
+  else if (e.altKey) nel.left.scrollTop += e.deltaY;
+  else zoomTL(Math.pow(1.0018, -e.deltaY), x);
+}, { passive: false });
+nel.cv.addEventListener('dragover', e => {
+  if (!libDrag) return;
+  e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'copy';
+  const { x, y } = evXY(e), k = Math.min(Math.max(rowAt(y), 0), NLA.tracks.length - 1), len = animLen(findAnim(libDrag));
+  let s = Math.max(0, tAt(x));
+  const sn = snapTime([s, s + len], null, e); if (sn) s = Math.max(0, s + sn.delta);
+  dropPreview = { k, start: s, anim: libDrag };
 });
-nel.cv.addEventListener('dblclick', e => {
-  const { x, y } = evXY(e), h = hitClip(x, y);
-  if (h.k >= 0 && h.i < 0) addClip(h.k, $('nlaAddAnim') && $('nlaAddAnim').value);
+nel.cv.addEventListener('dragleave', () => { dropPreview = null; });
+nel.cv.addEventListener('drop', e => {
+  if (!libDrag) return;
+  e.preventDefault(); e.stopPropagation();
+  dragDepth = 0; document.body.classList.remove('dragging');
+  const p = dropPreview; dropPreview = null; libDrag = null;
+  if (p) addClip(p.k, p.anim, p.start);
 });
+
+/* --- изменение высоты панели --- */
+(() => {
+  const h0 = +lsGet('suv.nlaH', '300'); if (h0 >= 80) nel.root.style.height = h0 + 'px';
+  let sd = null;
+  nel.split.addEventListener('pointerdown', e => {
+    nel.split.setPointerCapture(e.pointerId); nel.split.classList.add('drag');
+    if (nel.root.classList.contains('collapsed')) toggleCollapse();
+    sd = { y: e.clientY, h: nel.root.getBoundingClientRect().height };
+  });
+  nel.split.addEventListener('pointermove', e => {
+    if (!sd) return;
+    const h = Math.min(Math.max(sd.h - (e.clientY - sd.y), 80), window.innerHeight - 120);
+    nel.root.style.height = h + 'px';
+  });
+  const end = () => { if (!sd) return; sd = null; nel.split.classList.remove('drag'); lsSet('suv.nlaH', String(Math.round(nel.root.getBoundingClientRect().height))); };
+  nel.split.addEventListener('pointerup', end); nel.split.addEventListener('pointercancel', end);
+  nel.split.addEventListener('dblclick', toggleCollapse);
+})();
+function toggleCollapse() {
+  nel.root.classList.toggle('collapsed');
+  const c = nel.root.classList.contains('collapsed');
+  nel.collapse.textContent = c ? '▴' : '▾'; lsSet('suv.nlaCollapsed', c ? '1' : '0');
+}
+nel.collapse.addEventListener('click', toggleCollapse);
+if (lsGet('suv.nlaCollapsed', '0') === '1') { nel.root.classList.add('collapsed'); nel.collapse.textContent = '▴'; }
 
 /* --- панель --- */
 nel.on.addEventListener('change', () => nlaEnable(nel.on.checked));
 nel.play.addEventListener('click', togglePlay);
 nel.start.addEventListener('click', () => { NLA.time = 0; });
 nel.loop.addEventListener('change', () => { NLA.loop = nel.loop.checked; nlaSave(); });
-nel.addTrack.addEventListener('click', () => { NLA.tracks.push(newTrack()); NLA.selTrack = NLA.tracks.length - 1; nlaChanged(true); });
+nel.snap.addEventListener('change', () => { NLA.snap = nel.snap.checked; });
+nel.fit.addEventListener('click', nlaFit);
+nel.zin.addEventListener('click', () => zoomTL(1.5, tx(NLA.time)));
+nel.zout.addEventListener('click', () => zoomTL(1 / 1.5, tx(NLA.time)));
 nel.all.addEventListener('click', () => {
   if (!M) return;
   const tr = NLA.tracks[NLA.selTrack] || NLA.tracks[0];
-  tr.clips = M.data.animations.map(a => newClip(a.name));
+  tr.clips = []; let t = 0;
+  for (const a of M.data.animations) { tr.clips.push({ anim: a.name, start: t, repeats: 1, speed: 1 }); t += animLen(a) - XFADE; }
   NLA.sel = null; NLA.time = 0;
   if (!NLA.on) nlaEnable(true);
-  nlaChanged(true);
+  nlaChanged(true); nlaFit();
 });
-nel.clear.addEventListener('click', () => { NLA.tracks = [newTrack()]; NLA.sel = null; NLA.selTrack = 0; NLA.time = 0; nlaChanged(true); });
+nel.clear.addEventListener('click', () => { NLA.tracks = []; while (NLA.tracks.length < DEF_TRACKS) NLA.tracks.push(newTrack(NLA.tracks.length)); NLA.sel = null; NLA.selTrack = 0; NLA.time = 0; nlaChanged(true); });
 nel.exp.addEventListener('click', () => {
   if (!M) return;
   const blob = new Blob([JSON.stringify(nlaSerialize(), null, 2)], { type: 'application/json' });
@@ -1281,23 +1387,17 @@ nel.imp.addEventListener('click', () => nel.impFile.click());
 nel.impFile.addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f || !M) return;
-  try { nlaLoadData(JSON.parse(await f.text())); NLA.sel = null; NLA.time = 0; nlaEnable(true); nlaChanged(true); toast('NLA загружен: ' + f.name); }
+  try { nlaLoadData(JSON.parse(await f.text())); NLA.sel = null; NLA.time = 0; nlaEnable(true); nlaChanged(true); nlaFit(); toast('NLA загружен: ' + f.name); }
   catch (err) { toast('Не удалось прочитать NLA: ' + err.message, 'bad'); }
 });
-nel.collapse.addEventListener('click', () => {
-  nel.root.classList.toggle('collapsed');
-  nel.collapse.textContent = nel.root.classList.contains('collapsed') ? '▴' : '▾';
-  lsSet('suv.nlaCollapsed', nel.root.classList.contains('collapsed') ? '1' : '0');
-});
-if (lsGet('suv.nlaCollapsed', '0') === '1') { nel.root.classList.add('collapsed'); nel.collapse.textContent = '▴'; }
 window.addEventListener('keydown', e => {
   if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
   if ((e.key === 'Delete' || e.key === 'Backspace') && NLA.sel) {
-    NLA.tracks[NLA.sel.t].clips.splice(NLA.sel.i, 1); NLA.sel = null; nlaChanged(true); e.preventDefault();
+    const k = trackOf(NLA.sel); if (k >= 0) NLA.tracks[k].clips.splice(NLA.tracks[k].clips.indexOf(NLA.sel), 1);
+    NLA.sel = null; nlaChanged(true); e.preventDefault();
   } else if (e.key === 'Home') NLA.time = 0;
 });
-function nlaRebuild() { nlaHeads(); nlaInspector(); }
-nlaRebuild();
+nlaHeads(); nlaInspector();
 
 ['animSelect','timeRange','alphaRange','loopChk'].forEach(id => $(id).classList.add('single-anim'));
 
