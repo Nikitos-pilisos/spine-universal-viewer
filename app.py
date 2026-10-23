@@ -71,4 +71,9 @@ if __name__ == '__main__':
         height=860,
         resizable=True,
     )
-    webview.start()
+    try:
+        webview.settings['ALLOW_DOWNLOADS'] = True   # экспорт NLA .json
+    except Exception:
+        pass
+    # private_mode=False — localStorage (настройки, NLA-раскладки) сохраняется между запусками
+    webview.start(private_mode=False)
